@@ -8,11 +8,10 @@ import de.anura.bot.teamspeak.TsBot
 import de.anura.bot.web.WebService
 import org.jdbi.v3.core.ConnectionException
 import org.slf4j.LoggerFactory
-import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
 
-    val logger = LoggerFactory.getLogger("de.anura.bot.Startup")
+    val logger = LoggerFactory.getLogger("de.anura.bot.BotStartupKt")
 
     // Reading the configuration
     val config = try {
@@ -40,11 +39,10 @@ fun main(args: Array<String>) {
 
     val web = WebService(config.web)
 
-    Runtime.getRuntime().addShutdownHook(thread {
+    Runtime.getRuntime().addShutdownHook(Thread({
         Scheduler.stop()
         web.stop()
         tsbot.disconnect()
-
-    })
+    }))
 
 }

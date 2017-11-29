@@ -22,7 +22,7 @@
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
-        <main.class>de.anura.bot.TsBot</main.class>
+        <main.class>de.anura.bot.BotStartupKt</main.class>
     </properties>
 
     <developers>
