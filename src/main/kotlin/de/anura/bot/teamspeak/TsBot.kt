@@ -51,9 +51,6 @@ class TsBot(private val appConfig: TsConfig) {
 
         val api = query.api
 
-        // inaktiv seit 5 Min nicht mehr zählen
-        // abwesend
-
         api.addTS3Listeners(EventListener(api))
     }
 

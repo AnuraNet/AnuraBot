@@ -6,7 +6,7 @@ import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.server.Http4kServer
-import org.http4k.server.Undertow
+import org.http4k.server.Netty
 import org.http4k.server.asServer
 
 class WebService(private val config: WebConfig) {
@@ -19,7 +19,7 @@ class WebService(private val config: WebConfig) {
 
     fun start() {
         val app: HttpHandler = { request -> handle(request) }
-        server = app.asServer(Undertow(config.port)).start()
+        server = app.asServer(Netty(config.port)).start()
     }
 
     fun handle(request: Request): Response {
