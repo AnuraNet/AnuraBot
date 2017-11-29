@@ -3,6 +3,12 @@ The Teamspeak Bot for the Anura network.
 
 Currently **under heavy development** so don't use it or it'll break everything ;) 
 
+## How to build
+Just clone this project and build it with Maven:
+```
+mvn package
+```
+
 ## Libraries
 We're using the following libraries for this project:
 * [Kotlin](https://kotlinlang.org/)
