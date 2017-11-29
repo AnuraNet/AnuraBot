@@ -6,7 +6,8 @@ data class TsConfig(
         val user: String,
         val password: String,
         val virtualserver: Int,
-        val nickname: String
+        val nickname: String,
+        val channel: String
 )
 
 data class WebConfig(

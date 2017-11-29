@@ -38,7 +38,8 @@ class AppConfig {
                 getString("teamspeak", "user"),
                 getString("teamspeak", "password"),
                 getInt("teamspeak", "virtualserver"),
-                getString("teamspeak", "nickname")
+                getString("teamspeak", "nickname"),
+                getString("teamspeak", "channel")
         )
 
         web = WebConfig(
