@@ -74,6 +74,8 @@ class TsBot(private val appConfig: TsConfig) {
 
     fun disconnect() {
         query.exit()
+        TimeManager.saveAll(true)
+        logger.info("Disconnected from the Teamspeak server (${appConfig.host})")
     }
 
 }

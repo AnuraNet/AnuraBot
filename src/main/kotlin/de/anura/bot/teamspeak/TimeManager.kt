@@ -91,7 +91,8 @@ object TimeManager {
     }
 
     fun saveAll(remove: Boolean) {
-        clientTime.keys.forEach { uid -> save(uid, remove) }
+        clientTime.keys.forEach { uid -> save(uid, false) }
+        if (remove) clientTime.clear()
     }
 
     fun addListener(listener: TimeChangedListener) {
