@@ -43,6 +43,7 @@ class AppConfig {
         )
 
         web = WebConfig(
+                getBoolean("web", "enabled"),
                 getString("web", "host"),
                 getInt("web", "port")
         )
@@ -58,6 +59,7 @@ class AppConfig {
         steam = SteamConfig(
                 getString("steam", "api_key")
         )
+
     }
 
     private fun getString(section: String, key: String): String {
@@ -78,6 +80,12 @@ class AppConfig {
         } catch (ex: NumberFormatException) {
             throw ConfigException("Value for key $section.$key isn't a integer", ex)
         }
+    }
+
+    private fun getBoolean(section: String, key: String): Boolean {
+        val string = getString(section, key).trim()
+
+        return string == "1" || string.toLowerCase() == "true"
     }
 
 }

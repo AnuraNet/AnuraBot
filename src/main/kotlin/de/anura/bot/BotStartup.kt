@@ -37,11 +37,11 @@ fun main(args: Array<String>) {
         return
     }
 
-    val web = WebService(config.web)
+    val web = if (config.web.enabled) WebService(config.web) else null
 
     Runtime.getRuntime().addShutdownHook(Thread({
         Scheduler.stop()
-        web.stop()
+        web?.stop()
         tsbot.disconnect()
     }))
 
