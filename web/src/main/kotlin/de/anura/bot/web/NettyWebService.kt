@@ -11,7 +11,7 @@ import org.openid4java.message.AuthSuccess
 import org.openid4java.message.ParameterList
 import org.slf4j.LoggerFactory
 
-class WebService(private val config: WebConfig) {
+class NettyWebService(private val config: WebConfig) : WebService {
 
     private lateinit var server: Http4kServer
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -50,7 +50,7 @@ class WebService(private val config: WebConfig) {
     }
 
     private fun authenticate(request: Request): Response {
-        // todo token & move to module
+        // todo token
         val returnUrl = "http://" + (request.header("Host") ?: "") + "/accept"
 
         val authRequest = idManager.authenticate(discovered, returnUrl)
@@ -95,11 +95,11 @@ class WebService(private val config: WebConfig) {
                 .header("Content-Type", "text/html")
     }
 
-    fun getUri(uid: String) {
-
+    override fun getLoginUrl(uid: String): String {
+        return ""
     }
 
-    fun stop() {
+    override fun stop() {
         server.stop()
         logger.info("Stopped the web server")
     }
