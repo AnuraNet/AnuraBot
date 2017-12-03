@@ -7,27 +7,27 @@ Currently **under heavy development** so don't use it or it'll break everything 
 
 ![Cards Icon](icon/cards@0.5.png) 
 
-## How to use
-
-### Building
+## Building
 Just clone this project and build it with Maven:
 ```
 mvn package
 ```
 
-### Running
+## Running
 You can run two versions of this bot:
 
-##### Built with web server
-If you don't know which version to use, **use this one**. 
+### Built with web server
+If you don't know which version to use, **use this one**.  
 It includes everything you need to run the bot and use all of its features.
 To get the jar for this version go to the folder `web/target` and use the 
 `jar-with-dependencies`.
 
-##### Built without web server
+### Built without web server
 I recommend this version if you already integrated Steam authentication
-onto your website. Thats why this version is built without the web server.
+into your website. Thats why this version is built without the web server.
 You can find the `jar-with-dependencies` in the `base/target` folder.
+
+### First start
 
 Copy the `jar-with-dependencies` of your selected version into a direction used for the bot.
 Now start the bot with 
