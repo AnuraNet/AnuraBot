@@ -32,11 +32,18 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Configuration (.int) -->
+        <!-- Configuration (.ini) -->
         <dependency>
             <groupId>org.ini4j</groupId>
             <artifactId>ini4j</artifactId>
             <version>0.5.4</version>
+        </dependency>
+
+        <!-- Json Parser -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20171018</version>
         </dependency>
 
         <!-- Logger (SLF4J Implementation) -->

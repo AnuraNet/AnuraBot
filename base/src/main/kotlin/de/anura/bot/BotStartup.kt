@@ -5,6 +5,9 @@ import de.anura.bot.config.AppConfig
 import de.anura.bot.config.ConfigException
 import de.anura.bot.database.Database
 import de.anura.bot.teamspeak.TsBot
+import de.anura.bot.web.SteamAPI
+import de.anura.bot.web.SteamException
+import de.anura.bot.web.SteamHttpException
 import de.anura.bot.web.WebService
 import org.jdbi.v3.core.ConnectionException
 import org.slf4j.Logger
@@ -28,6 +31,18 @@ fun main(args: Array<String>) {
         Database.connect(config.mysql)
     } catch (ex: ConnectionException) {
         logger.error("Couldn't connect to the database! Please check the credentials. \n{}", ex.message)
+        return
+    }
+
+    // Checking the Steam API Key
+    try {
+        SteamAPI.setKey(config.steam.apiKey)
+        logger.info("Your Steam API Key is valid")
+    } catch (ex: SteamException) {
+        if (ex is SteamHttpException && ex.status == 403)
+            logger.error("The Steam API Key is invalid. Please check the config!")
+        else
+            logger.error("There was an error contacting the Steam API")
         return
     }
 

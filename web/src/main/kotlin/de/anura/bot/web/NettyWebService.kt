@@ -8,6 +8,7 @@ import org.http4k.server.asServer
 import org.openid4java.consumer.ConsumerManager
 import org.openid4java.discovery.DiscoveryInformation
 import org.openid4java.message.AuthSuccess
+import org.openid4java.message.MessageException
 import org.openid4java.message.ParameterList
 import org.slf4j.LoggerFactory
 
@@ -63,20 +64,36 @@ class NettyWebService(private val config: WebConfig) : WebService {
         val parameters = ParameterList(request.uri.queries().toMap())
         val receivingUrl = "http://" + (request.header("Host") ?: "") + request.uri.path
 
-        val verification = idManager.verify(receivingUrl, parameters, discovered)
+        val verification = try {
+            idManager.verify(receivingUrl, parameters, discovered)
+        } catch (ex: MessageException) {
+            return textOK("Oh there it seems as something is missing. Please try it again!")
+        }
+
         val identifier = verification.verifiedId
 
         return if (identifier != null) {
             val authSuccess = verification.authResponse as AuthSuccess
 
-            textOK("Hey ${authSuccess.identity} with claimed ${authSuccess.claimed}")
+            val steamid = authSuccess.claimed.replace("http://steamcommunity.com/openid/id/", "")
+
+            val player = SteamAPI.getPlayerSummaries(steamid)
+            val games = SteamAPI.getOwnedGames(steamid)
+
+            if (player != null) {
+                val gamesStr = games.joinToString(", ") { it.name }
+                textOK("Hey ${player.personaname} with claimed ${authSuccess.claimed}<br>Games:$gamesStr")
+            } else {
+                textOK("What $steamid")
+            }
+
         } else {
             textOK("There was an error with your login. Please try it again or contact our team!")
         }
     }
 
     private fun mainPage(request: Request): Response {
-        return textOK("Although this is the wrong host you can visit our <a href='http://example.com'>website</a>")
+        return textOK("Although this is the wrong page you can visit our <a href='http://example.com'>website</a>")
     }
 
     private fun textOK(text: String): Response {
