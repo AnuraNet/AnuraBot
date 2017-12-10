@@ -1,28 +1,50 @@
 package de.anura.bot.teamspeak
 
 import com.github.theholywaffle.teamspeak3.TS3Api
-import com.github.theholywaffle.teamspeak3.api.event.ClientJoinEvent
-import com.github.theholywaffle.teamspeak3.api.event.ClientLeaveEvent
-import com.github.theholywaffle.teamspeak3.api.event.TS3EventAdapter
-import com.github.theholywaffle.teamspeak3.api.event.TextMessageEvent
+import com.github.theholywaffle.teamspeak3.api.event.*
+import com.github.theholywaffle.teamspeak3.api.wrapper.Client
 
 class EventListener(private val api: TS3Api) : TS3EventAdapter() {
 
-    override fun onTextMessage(e: TextMessageEvent?) {
-        if (e == null) return
+    private val steam = SteamConnector(api)
+    // Teamspeak Client ID <> Teamspeak Unique ID
+    private val clientUids = mutableMapOf<Int, String>()
 
-        api.sendPrivateMessage(e.invokerId, "Hey")
+    init {
+        api.clients.forEach { populateCache(it) }
     }
 
-    override fun onClientJoin(e: ClientJoinEvent?) {
-        if (e == null) return
-        // todo update game icons
-        TimeManager.load(e.uniqueClientIdentifier)
+    fun populateCache(client: Client) {
+        clientUids.put(client.id, client.uniqueIdentifier)
     }
 
-    override fun onClientLeave(e: ClientLeaveEvent?) {
-        if (e == null) return
+    fun clearCache() {
+        clientUids.clear()
+    }
 
-        TimeManager.save(e.invokerUniqueId, true) // todo test this
+    override fun onTextMessage(ev: TextMessageEvent) {
+        api.sendPrivateMessage(ev.invokerId, "Hey")
+    }
+
+    override fun onClientMoved(ev: ClientMovedEvent) {
+
+        api.sendPrivateMessage(ev.clientId, "${ev.clientId}")
+        api.sendPrivateMessage(ev.clientId, "${ev.invokerId}")
+
+    }
+
+    override fun onClientJoin(ev: ClientJoinEvent) {
+        clientUids[ev.clientId] = ev.uniqueClientIdentifier
+
+        steam.setGroups(ev)
+        TimeManager.load(ev.uniqueClientIdentifier)
+    }
+
+    override fun onClientLeave(ev: ClientLeaveEvent) {
+        val uniqueId = clientUids.remove(ev.clientId)
+
+        if (uniqueId != null) {
+            TimeManager.save(uniqueId, true)
+        }
     }
 }

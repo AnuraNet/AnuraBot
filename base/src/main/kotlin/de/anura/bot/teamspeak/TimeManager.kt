@@ -96,7 +96,7 @@ object TimeManager {
     }
 
     fun addListener(listener: TimeChangedListener) {
-        listeners.add(listener)
+        listeners.add(listener) // todo add listener
     }
 
 }

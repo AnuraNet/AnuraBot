@@ -1,5 +1,6 @@
 package de.anura.bot.config
 
+import com.github.theholywaffle.teamspeak3.TS3Query
 import org.ini4j.Wini
 import java.io.File
 import java.nio.file.Files
@@ -39,7 +40,8 @@ class AppConfig {
                 getString("teamspeak", "password"),
                 getInt("teamspeak", "virtualserver"),
                 getString("teamspeak", "nickname"),
-                getString("teamspeak", "channel")
+                getString("teamspeak", "channel"),
+                getFloodRate("teamspeak", "flood_rate")
         )
 
         web = WebConfig(
@@ -86,6 +88,16 @@ class AppConfig {
         val string = getString(section, key).trim()
 
         return string == "1" || string.toLowerCase() == "true"
+    }
+
+    private fun getFloodRate(section: String, key: String): TS3Query.FloodRate {
+        val string = getString(section, key).trim()
+
+        return when (string.toUpperCase()) {
+            "DEFAULT" -> TS3Query.FloodRate.DEFAULT
+            "UNLIMITED" -> TS3Query.FloodRate.UNLIMITED
+            else -> throw ConfigException("Value for key $section.$key must be 'DEFAULT' or 'UNLIMTED'")
+        }
     }
 
 }

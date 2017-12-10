@@ -23,7 +23,7 @@ object Database {
         jdbi.useHandleUnchecked { handle ->
             // Table for the steam games with a icon
             handle.execute("CREATE TABLE IF NOT EXISTS `steam_game` ( " +
-                    "  `id` int(11) NOT NULL COMMENT 'Steam''s App ID', " +
+                    "  `id` int(11) NOT NULL COMMENT 'Steam'\'s App ID', " +
                     "  `icon_id` int(11) DEFAULT NULL COMMENT 'Teamspeak''s Icon ID', " +
                     "  PRIMARY KEY (`id`)" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")

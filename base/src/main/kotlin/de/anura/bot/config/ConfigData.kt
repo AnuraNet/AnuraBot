@@ -1,5 +1,7 @@
 package de.anura.bot.config
 
+import com.github.theholywaffle.teamspeak3.TS3Query
+
 data class TsConfig(
         val host: String,
         val port: Int,
@@ -7,7 +9,8 @@ data class TsConfig(
         val password: String,
         val virtualserver: Int,
         val nickname: String,
-        val channel: String
+        val channel: String,
+        val floodRate: TS3Query.FloodRate
 )
 
 data class WebConfig(

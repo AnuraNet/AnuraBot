@@ -15,6 +15,7 @@ class TsBot(private val appConfig: TsConfig) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private lateinit var query: TS3Query
+    private var eventListener: EventListener? = null
 
     init {
         connect()
@@ -26,6 +27,7 @@ class TsBot(private val appConfig: TsConfig) {
         config.setHost(appConfig.host)
         config.setQueryPort(appConfig.port)
         config.setReconnectStrategy(ReconnectStrategy.linearBackoff())
+        config.setFloodRate(appConfig.floodRate)
 
         config.setConnectionHandler(object : ConnectionHandler {
             override fun onConnect(query: TS3Query?) {
@@ -39,6 +41,8 @@ class TsBot(private val appConfig: TsConfig) {
                 logger.info("Connected to the Teamspeak server (${appConfig.host})")
 
                 api.registerEvent(TS3EventType.TEXT_PRIVATE)
+                api.registerEvent(TS3EventType.CHANNEL)
+
                 val channel = api.getChannelByNameExact(appConfig.channel, false)
                 if (channel != null) {
                     api.moveQuery(channel)
@@ -47,13 +51,17 @@ class TsBot(private val appConfig: TsConfig) {
                     logger.warn("Couldn't find the channel '${appConfig.channel}'.")
                 }
 
-                api.clients.forEach { client -> TimeManager.load(client.uniqueIdentifier) }
+                api.clients.forEach { client ->
+                    eventListener?.populateCache(client)
+                    TimeManager.load(client.uniqueIdentifier)
+                }
 
             }
 
             override fun onDisconnect(query: TS3Query?) {
                 connected = false
 
+                eventListener?.clearCache()
                 TimeManager.saveAll(true)
 
                 logger.info("Lost connection to the Teamspeak server (${appConfig.host})")
@@ -65,7 +73,8 @@ class TsBot(private val appConfig: TsConfig) {
 
         val api = query.api
 
-        api.addTS3Listeners(EventListener(api))
+        eventListener = EventListener(api)
+        api.addTS3Listeners(eventListener)
     }
 
     fun getApi(): TS3Api? {
