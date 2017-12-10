@@ -28,6 +28,15 @@ object Database {
                     "  PRIMARY KEY (`id`)" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
 
+            // Table for groups with a time requirement
+            handle.execute("CREATE TABLE IF NOT EXISTS `ts_time_group` ( " +
+                    "  `id` int(11) NOT NULL AUTO_INCREMENT, " +
+                    "  `required_time` int(11) DEFAULT NULL COMMENT 'The time in seconds a user needs to get this group', " +
+                    "  `parent` int(11) DEFAULT NULL COMMENT 'The id of an other group', " +
+                    "  `replace_parent` int(1) DEFAULT NULL COMMENT 'Whether the parent group should be replaced', " +
+                    "  PRIMARY KEY (`id`) " +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
+
             // Table for the users
             handle.execute("CREATE TABLE IF NOT EXISTS `ts_user` ( " +
                     "  `id` int(11) NOT NULL AUTO_INCREMENT, " +

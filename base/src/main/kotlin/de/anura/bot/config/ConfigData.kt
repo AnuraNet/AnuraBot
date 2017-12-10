@@ -16,7 +16,8 @@ data class TsConfig(
 data class WebConfig(
         val enabled: Boolean,
         val host: String,
-        val port: Int
+        val port: Int,
+        val externalUrl: String
 ) {
     fun hostUri(): String {
         return if (port == 80 || port == 443) host else host + ":" + port

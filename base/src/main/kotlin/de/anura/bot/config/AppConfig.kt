@@ -47,7 +47,8 @@ class AppConfig {
         web = WebConfig(
                 getBoolean("web", "enabled"),
                 getString("web", "host"),
-                getInt("web", "port")
+                getInt("web", "port"),
+                getString("web", "external_url")
         )
 
         mysql = SqlConfig(

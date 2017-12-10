@@ -24,12 +24,13 @@ class EventListener(private val api: TS3Api) : TS3EventAdapter() {
 
     override fun onTextMessage(ev: TextMessageEvent) {
         api.sendPrivateMessage(ev.invokerId, "Hey")
+        // todo add command interface
     }
 
     override fun onClientMoved(ev: ClientMovedEvent) {
 
         api.sendPrivateMessage(ev.clientId, "${ev.clientId}")
-        api.sendPrivateMessage(ev.clientId, "${ev.invokerId}")
+        // todo when the client joins the Steam channel, send the client a message
 
     }
 
