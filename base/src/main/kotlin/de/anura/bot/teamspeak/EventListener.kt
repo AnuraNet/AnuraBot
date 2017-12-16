@@ -3,49 +3,57 @@ package de.anura.bot.teamspeak
 import com.github.theholywaffle.teamspeak3.TS3Api
 import com.github.theholywaffle.teamspeak3.api.event.*
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client
+import de.anura.bot.teamspeak.commands.CommandHandler
 
-class EventListener(private val api: TS3Api) : TS3EventAdapter() {
+class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventAdapter() {
 
     private val steam = SteamConnector(api)
-    // Teamspeak Client ID <> Teamspeak Unique ID
-    private val clientUids = mutableMapOf<Int, String>()
-
-    init {
-        api.clients.forEach { populateCache(it) }
-    }
+    private val commands = CommandHandler(api)
+    private val clients = mutableMapOf<Int, TeamspeakClient>()
 
     fun populateCache(client: Client) {
-        clientUids.put(client.id, client.uniqueIdentifier)
+        clients.put(client.id, TeamspeakClient(client.id, client.uniqueIdentifier, client.channelId))
     }
 
     fun clearCache() {
-        clientUids.clear()
+        clients.clear()
     }
 
     override fun onTextMessage(ev: TextMessageEvent) {
-        api.sendPrivateMessage(ev.invokerId, "Hey")
-        // todo add command interface
+        // todo check permissions
+        commands.handle(ev.message)
     }
 
     override fun onClientMoved(ev: ClientMovedEvent) {
 
-        api.sendPrivateMessage(ev.clientId, "${ev.clientId}")
-        // todo when the client joins the Steam channel, send the client a message
+        val client = clients[ev.clientId] ?: return
+
+        val oldChannel = client.channelId
+        val newChannel = ev.targetChannelId
+        client.channelId = ev.targetChannelId // todo check whether we need to reinsert this
+
+        if (newChannel == bot.queryChannel?.id) { // what happens if queryChannel == null ?
+            api.sendPrivateMessage(ev.clientId, "Hey") // todo change message content
+            api.moveClient(ev.clientId, oldChannel)
+        }
 
     }
 
+
     override fun onClientJoin(ev: ClientJoinEvent) {
-        clientUids[ev.clientId] = ev.uniqueClientIdentifier
+        clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, 0) // todo check channel
 
         steam.setGroups(ev)
         TimeManager.load(ev.uniqueClientIdentifier)
     }
 
     override fun onClientLeave(ev: ClientLeaveEvent) {
-        val uniqueId = clientUids.remove(ev.clientId)
+        val client = clients.remove(ev.clientId)
 
-        if (uniqueId != null) {
-            TimeManager.save(uniqueId, true)
+        if (client != null) {
+            TimeManager.save(client.uniqueId, true)
         }
     }
+
+    data class TeamspeakClient(var clientId: Int, val uniqueId: String, var channelId: Int)
 }

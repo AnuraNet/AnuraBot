@@ -1,21 +1,22 @@
 package de.anura.bot.teamspeak
 
-import com.github.theholywaffle.teamspeak3.TS3Api
 import com.github.theholywaffle.teamspeak3.TS3Config
 import com.github.theholywaffle.teamspeak3.TS3Query
 import com.github.theholywaffle.teamspeak3.api.event.TS3EventType
 import com.github.theholywaffle.teamspeak3.api.reconnect.ConnectionHandler
 import com.github.theholywaffle.teamspeak3.api.reconnect.ReconnectStrategy
+import com.github.theholywaffle.teamspeak3.api.wrapper.Channel
 import de.anura.bot.config.TsConfig
 import org.slf4j.LoggerFactory
 
-class TsBot(private val appConfig: TsConfig) {
+class TsBot(val appConfig: TsConfig) {
 
     private var connected: Boolean = false
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private lateinit var query: TS3Query
+    private var query: TS3Query? = null // todo improve this
     private var eventListener: EventListener? = null
+    var queryChannel: Channel? = null
 
     init {
         connect()
@@ -43,9 +44,9 @@ class TsBot(private val appConfig: TsConfig) {
                 api.registerEvent(TS3EventType.TEXT_PRIVATE)
                 api.registerEvent(TS3EventType.CHANNEL)
 
-                val channel = api.getChannelByNameExact(appConfig.channel, false)
-                if (channel != null) {
-                    api.moveQuery(channel)
+                queryChannel = api.getChannelByNameExact(appConfig.channel, false)
+                if (queryChannel != null) {
+                    api.moveQuery(queryChannel)
                     logger.info("Joined the channel '${appConfig.channel}'")
                 } else {
                     logger.warn("Couldn't find the channel '${appConfig.channel}'.")
@@ -68,21 +69,15 @@ class TsBot(private val appConfig: TsConfig) {
             }
         })
 
-        query = TS3Query(config)
-        query.connect()
-
+        val query = TS3Query(config)
         val api = query.api
-
-        eventListener = EventListener(api)
+        eventListener = EventListener(this, api)
+        query.connect()
         api.addTS3Listeners(eventListener)
     }
 
-    fun getApi(): TS3Api? {
-        return if (connected) query.api else null
-    }
-
     fun disconnect() {
-        query.exit()
+        query?.exit()
         TimeManager.saveAll(true)
         logger.info("Disconnected from the Teamspeak server (${appConfig.host})")
     }

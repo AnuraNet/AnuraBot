@@ -14,10 +14,11 @@ class ActivityCounter(private val bot: TsBot) {
 
 
     private fun run() {
-        val api = bot.getApi() ?: return
+        // todo fix this
+        /* val api = bot.getApi() ?: return
 
         api.clients.stream()
                 .filter { client -> client.idleTime > maxIdleTime }
-                .forEach { client -> TimeManager.add(client.uniqueIdentifier, delay) }
+                .forEach { client -> TimeManager.add(client.uniqueIdentifier, delay) } */
     }
 }
