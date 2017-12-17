@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
 
     // Reading the configuration
     val config = try {
-        AppConfig()
+        AppConfig
     } catch (ex: ConfigException) {
         logger.error("There was an error while reading the configuration:", ex)
         return
@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
 
     // Connecting to the database
     try {
-        Database.connect(config.mysql)
+        Database.connect()
     } catch (ex: ConnectionException) {
         logger.error("Couldn't connect to the database! Please check the credentials. \n{}", ex.message)
         return
@@ -48,7 +48,7 @@ fun main(args: Array<String>) {
 
     // Connecting to the teamspeak server
     val tsbot = try {
-        TsBot(config.teamspeak)
+        TsBot
     } catch (ex: TS3ConnectionFailedException) {
         logger.error("Couldn't connect to the teamspeak server:", ex)
         return

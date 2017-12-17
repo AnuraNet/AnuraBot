@@ -1,6 +1,5 @@
 package de.anura.bot.teamspeak
 
-import com.github.theholywaffle.teamspeak3.TS3Api
 import com.github.theholywaffle.teamspeak3.api.event.ClientJoinEvent
 import de.anura.bot.database.Database
 import de.anura.bot.web.SteamAPI
@@ -8,8 +7,10 @@ import de.anura.bot.web.SteamException
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
 
-class SteamConnector(private val ts: TS3Api) {
+object SteamConnector {
 
+    // The API for the Teamspeak server query
+    private val ts = TsBot.api
     // Steam Game Id <> Teamspeak Icon Id
     private val icons = mutableMapOf<Int, Int>()
     // Teamspeak UID <> Timestamp
@@ -41,6 +42,28 @@ class SteamConnector(private val ts: TS3Api) {
         Database.get().useHandleUnchecked {
             it.execute("INSERT INTO steam_game (`id`, icon_id) VALUES (?, ?)", gameId, iconId)
         }
+    }
+
+    /**
+     * Lists all associations
+     */
+    fun list(): Map<Int, Int> {
+        return icons.toMap()
+    }
+
+    /**
+     * Removes an game icon association from the cache and the database
+     *
+     * @return Whether a association was removed
+     */
+    fun removeIcon(gameId: Int): Boolean {
+        val removed = icons.remove(gameId)
+
+        Database.get().useHandleUnchecked {
+            it.execute("DELETE FROM steam_game WHERE `id` = ?", gameId)
+        }
+
+        return removed != null
     }
 
     /**

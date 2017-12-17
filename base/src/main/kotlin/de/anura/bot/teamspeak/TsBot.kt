@@ -1,22 +1,24 @@
 package de.anura.bot.teamspeak
 
+import com.github.theholywaffle.teamspeak3.TS3Api
 import com.github.theholywaffle.teamspeak3.TS3Config
 import com.github.theholywaffle.teamspeak3.TS3Query
 import com.github.theholywaffle.teamspeak3.api.event.TS3EventType
 import com.github.theholywaffle.teamspeak3.api.reconnect.ConnectionHandler
 import com.github.theholywaffle.teamspeak3.api.reconnect.ReconnectStrategy
-import com.github.theholywaffle.teamspeak3.api.wrapper.Channel
-import de.anura.bot.config.TsConfig
+import de.anura.bot.config.AppConfig
 import org.slf4j.LoggerFactory
 
-class TsBot(val appConfig: TsConfig) {
+object TsBot {
 
-    private var connected: Boolean = false
+    private val appConfig = AppConfig.teamspeak
+    private var connected = false
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private var query: TS3Query? = null // todo improve this
-    private var eventListener: EventListener? = null
-    var queryChannel: Channel? = null
+    private lateinit var query: TS3Query
+    private lateinit var eventListener: EventListener
+    val api: TS3Api by lazy { query.api }
+    var queryChannel: Int = -1
 
     init {
         connect()
@@ -44,16 +46,17 @@ class TsBot(val appConfig: TsConfig) {
                 api.registerEvent(TS3EventType.TEXT_PRIVATE)
                 api.registerEvent(TS3EventType.CHANNEL)
 
-                queryChannel = api.getChannelByNameExact(appConfig.channel, false)
+                val queryChannel = api.getChannelByNameExact(appConfig.channel, false)
                 if (queryChannel != null) {
                     api.moveQuery(queryChannel)
                     logger.info("Joined the channel '${appConfig.channel}'")
+                    TsBot.queryChannel = queryChannel.id
                 } else {
                     logger.warn("Couldn't find the channel '${appConfig.channel}'.")
                 }
 
                 api.clients.forEach { client ->
-                    eventListener?.populateCache(client)
+                    eventListener.populateCache(client)
                     TimeManager.load(client.uniqueIdentifier)
                 }
 
@@ -62,22 +65,26 @@ class TsBot(val appConfig: TsConfig) {
             override fun onDisconnect(query: TS3Query?) {
                 connected = false
 
-                eventListener?.clearCache()
+                eventListener.clearCache()
                 TimeManager.saveAll(true)
 
                 logger.info("Lost connection to the Teamspeak server (${appConfig.host})")
             }
         })
 
-        val query = TS3Query(config)
-        val api = query.api
+        // Building the query object using the configuration
+        query = TS3Query(config)
+
+        // Creating the EventListener & registering it
         eventListener = EventListener(this, api)
-        query.connect()
         api.addTS3Listeners(eventListener)
+
+        // Connecting to the teamspeak server
+        query.connect()
     }
 
     fun disconnect() {
-        query?.exit()
+        query.exit()
         TimeManager.saveAll(true)
         logger.info("Disconnected from the Teamspeak server (${appConfig.host})")
     }

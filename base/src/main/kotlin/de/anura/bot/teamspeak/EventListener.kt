@@ -7,8 +7,8 @@ import de.anura.bot.teamspeak.commands.CommandHandler
 
 class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventAdapter() {
 
-    private val steam = SteamConnector(api)
-    private val commands = CommandHandler(api)
+    private val steam = SteamConnector
+    private val commands = CommandHandler()
     private val clients = mutableMapOf<Int, TeamspeakClient>()
 
     fun populateCache(client: Client) {
@@ -20,8 +20,9 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
     }
 
     override fun onTextMessage(ev: TextMessageEvent) {
-        // todo check permissions
-        commands.handle(ev.message)
+        val result = commands.handle(ev.message)
+        println(ev)
+        api.sendPrivateMessage(ev.invokerId, result) // todo check invoker
     }
 
     override fun onClientMoved(ev: ClientMovedEvent) {
@@ -32,7 +33,7 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
         val newChannel = ev.targetChannelId
         client.channelId = ev.targetChannelId // todo check whether we need to reinsert this
 
-        if (newChannel == bot.queryChannel?.id) { // what happens if queryChannel == null ?
+        if (newChannel == bot.queryChannel) {
             api.sendPrivateMessage(ev.clientId, "Hey") // todo change message content
             api.moveClient(ev.clientId, oldChannel)
         }

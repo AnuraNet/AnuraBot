@@ -5,73 +5,70 @@ import de.anura.bot.database.Database
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 
 object TimeManager {
 
     private val clientTime: HashMap<String, Long> = HashMap()
-    private val listeners: HashSet<TimeChangedListener> = HashSet()
+    private val listeners: HashSet<TimeListener> = HashSet()
 
     init {
         Scheduler.service.scheduleWithFixedDelay({ saveAll(false) }, 15, 15, TimeUnit.MINUTES)
+        ActivityCounter
     }
 
-    fun load(uid: String) {
-        val optional = Database.get().withHandleUnchecked { handle ->
-            handle.select("SELECT time FROM ts_user WHERE uid = ?")
-                    .bind(0, uid)
+    private fun select(uid: String): Long? {
+        val result = Database.get().withHandleUnchecked {
+            it.select("SELECT time FROM ts_user WHERE uid = ?", uid)
                     .mapTo(Long::class.java)
                     .findFirst()
         }
-
-        if (!optional.isPresent) {
-            insert(uid)
-        }
-
-        clientTime[uid] = optional.orElse(0)
-
+        return result.orElse(null)
     }
 
     private fun insert(uid: String) {
-        Database.get().useHandleUnchecked { handle ->
-            handle.createUpdate("INSERT INTO ts_user (uid, `time`) VALUES (?, ?)")
-                    .bind(0, uid)
-                    .bind(1, 0)
-                    .execute()
+        Database.get().useHandleUnchecked {
+            it.execute("INSERT INTO ts_user (uid, `time`) VALUES (?, ?)", uid, 0)
         }
     }
 
-    fun loadReadOnly(uid: String, consumer: Consumer<Long?>) {
-
-        if (clientTime.contains(uid)) {
-            consumer.accept(clientTime[uid])
-        } else {
-            load(uid)
-            consumer.accept(clientTime[uid])
-            clientTime.remove(uid) // todo improve
-        }
-
+    fun load(uid: String) {
+        // Selecting from the database
+        val result = select(uid)
+        // If it doesn't exists there, we'll insert into
+        if (result == null) insert(uid)
+        // Adding it to the cache
+        clientTime[uid] = result ?: 0
     }
 
     /**
      * Gets the time (in seconds) how long the Teamspeak with
      * the UID [uid] has been on this server.
      *
+     * @param uid The Teamspeak Unique Id of the user
+     * @param db Whether the database should be queried if nothing is loaded
+     *
      * @return The time [uid] has been on this server in seconds
      */
-    fun get(uid: String): Long {
+    fun get(uid: String, db: Boolean = false): Long {
         return when {
             clientTime.contains(uid) -> clientTime[uid] ?: 0
+            db -> select(uid) ?: 0
             else -> 0
         }
     }
 
+    /**
+     * Adds [time] to the user ([uid]).
+     *
+     * @param uid The Teamspeak Uid of the user
+     * @param time Time to add in seconds
+     */
     fun add(uid: String, time: Long) {
         val before = get(uid)
         val after = before + time
 
         clientTime.put(uid, after)
-        listeners.forEach { listener -> listener.changed(uid, before, after) }
+        listeners.forEach { it(uid, before, after) }
     }
 
     fun save(uid: String, remove: Boolean) {
@@ -80,11 +77,8 @@ object TimeManager {
 
         val time = clientTime[uid]
 
-        Database.get().useHandleUnchecked { handle ->
-            handle.createUpdate("UPDATE ts_user SET time = ? WHERE uid = ?")
-                    .bind(0, time)
-                    .bind(1, uid)
-                    .execute()
+        Database.get().useHandleUnchecked {
+            it.execute("UPDATE ts_user SET time = ? WHERE uid = ?", time, uid)
         }
 
         if (remove) clientTime.remove(uid)
@@ -95,8 +89,16 @@ object TimeManager {
         if (remove) clientTime.clear()
     }
 
-    fun addListener(listener: TimeChangedListener) {
-        listeners.add(listener) // todo add listener
+    /**
+     * This listener will be called after the time for the
+     * teamspeak user with the uid (1.) has been changed from
+     * the old (2.) value to the new (3.) value.
+     *
+     */
+    fun addListener(listener: TimeListener) {
+        listeners.add(listener)
     }
 
 }
+
+typealias TimeListener = (uid: String, old: Long, new: Long) -> Unit

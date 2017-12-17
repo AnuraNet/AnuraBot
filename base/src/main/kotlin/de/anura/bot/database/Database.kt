@@ -1,15 +1,16 @@
 package de.anura.bot.database
 
-import de.anura.bot.config.SqlConfig
+import de.anura.bot.config.AppConfig
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 
 object Database {
 
+    private val config = AppConfig.mysql
     private lateinit var jdbi: Jdbi
 
-    fun connect(config: SqlConfig) {
+    fun connect() {
         jdbi = Jdbi.create(
                 "jdbc:mysql://${config.host}:${config.port}/${config.database}" +
                         "?useLegacyDatetimeCode=false&serverTimezone=UTC",
@@ -29,12 +30,10 @@ object Database {
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
 
             // Table for groups with a time requirement
-            handle.execute("CREATE TABLE IF NOT EXISTS `ts_time_group` ( " +
-                    "  `id` int(11) NOT NULL AUTO_INCREMENT, " +
-                    "  `required_time` int(11) DEFAULT NULL COMMENT 'The time in seconds a user needs to get this group', " +
-                    "  `parent` int(11) DEFAULT NULL COMMENT 'The id of an other group', " +
-                    "  `replace_parent` int(1) DEFAULT NULL COMMENT 'Whether the parent group should be replaced', " +
-                    "  PRIMARY KEY (`id`) " +
+            handle.execute("CREATE TABLE `time_group` ( " +
+                    "  `ts_group` int(11) NOT NULL, " +
+                    "  `required_time` int(11) DEFAULT NULL COMMENT 'Time in seconds', " +
+                    "  PRIMARY KEY (`ts_group`) " +
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
 
             // Table for the users
@@ -43,6 +42,7 @@ object Database {
                     "  `uid` varchar(50) DEFAULT NULL COMMENT 'TeamSpeak Unique ID', " +
                     "  `time` int(11) DEFAULT NULL, " +
                     "  `steam_id` varchar(100) DEFAULT NULL, " +
+                    "  `permission` int(2) DEFAULT NULL, " +
                     "  PRIMARY KEY (`id`) " +
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
         }

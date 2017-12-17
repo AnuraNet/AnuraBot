@@ -5,7 +5,7 @@ import org.ini4j.Wini
 import java.io.File
 import java.nio.file.Files
 
-class AppConfig {
+object AppConfig {
     lateinit var teamspeak: TsConfig
     lateinit var web: WebConfig
     lateinit var mysql: SqlConfig
