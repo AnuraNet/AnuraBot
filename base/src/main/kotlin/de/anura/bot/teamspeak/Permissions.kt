@@ -52,7 +52,7 @@ object Permissions {
      */
     fun remove(uniqueId: String) {
         allowed.remove(uniqueId)
-        databaseUpdate(uniqueId, true)
+        databaseUpdate(uniqueId, false)
     }
 
     /**
@@ -62,7 +62,7 @@ object Permissions {
         val permBit = if (permission) 1 else 0
 
         database.useHandleUnchecked {
-            it.execute("UPDATE ts_user SET permission = 1 WHERE uid = ?", uniqueId, permBit)
+            it.execute("UPDATE ts_user SET permission = ? WHERE uid = ?", permBit, uniqueId)
         }
     }
 }

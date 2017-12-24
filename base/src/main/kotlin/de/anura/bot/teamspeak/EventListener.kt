@@ -25,11 +25,19 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
     override fun onTextMessage(ev: TextMessageEvent) {
         // We only handle direct messages to the bot as commands
         if (ev.targetMode == TextMessageTargetMode.CLIENT && ev.getInt("target") == bot.queryClientId) {
+
+            if (!Permissions.has(ev.invokerUniqueId)) {
+                api.sendPrivateMessage(ev.invokerId, "You don't have the permission to use commands!")
+                return
+            }
+
+            val message = ev.message.trim()
+
             // Catching exceptions during the command execution
             val result = try {
-                commands.handle(ev.message)
+                commands.handle(message)
             } catch (ex: Exception) {
-                logger.warn("There was an error while executing the command '{}'", ev.message, ex)
+                logger.warn("There was an error while executing the command '{}'", message, ex)
                 api.sendPrivateMessage(ev.invokerId, "There was an error while running your command ):")
                 return
             }

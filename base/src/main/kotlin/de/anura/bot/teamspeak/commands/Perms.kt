@@ -12,6 +12,10 @@ class Perms : Command() {
 
     @CommandHelp("Allow a user to interact with the bot")
     fun add(uniqueId: String): String {
+        if (perms.has(uniqueId)) {
+            return "The user has already the permission"
+        }
+
         val client = ts.getDatabaseClientByUId(uniqueId)
                 ?: return "A user with the unique id $uniqueId never visted this Teamspeak!"
 
@@ -35,7 +39,7 @@ class Perms : Command() {
         val client = ts.getDatabaseClientByUId(uniqueId)
 
         return if (client != null)
-            "Revoked the permission from $client"
+            "Revoked the permission from ${client.nickname}"
         else
             "Revoked the permission from a user without a name"
     }

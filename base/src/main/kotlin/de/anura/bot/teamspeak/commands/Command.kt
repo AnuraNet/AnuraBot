@@ -2,6 +2,7 @@ package de.anura.bot.teamspeak.commands
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.full.cast
 import kotlin.reflect.full.declaredFunctions
@@ -43,7 +44,7 @@ abstract class Command {
                 .map { pair ->
                     val help = (pair.second as CommandHelp).help
                     val arguments = pair.first.parameters
-                            .filter { it.index > 0 }
+                            .filter { it.kind == KParameter.Kind.VALUE }
                             .map { Argument(it.name ?: "", it.type) }
 
                     SubCommand(pair.first, pair.first.name, help, arguments)
@@ -94,7 +95,7 @@ abstract class Command {
         val command = subs[arguments[0].toLowerCase()] ?: return compiledHelp
 
         // If there are too few arguments => Help
-        if (command.arguments.size < arguments.size) {
+        if (command.arguments.size > arguments.size - 1) {
             return "Wrong parameters: $name ${generateSubHelp(command)}"
         }
 
@@ -103,7 +104,8 @@ abstract class Command {
             // The class of the parameter for the method
             val classifier = required.type.classifier ?: return@mapIndexedNotNull null
             // The string which has to be transformed
-            val given = arguments[index]
+            // We add one to the index because we don't want the sub command name
+            val given = arguments[index + 1]
 
             val any: Any = when (classifier) {
                 Int::class -> given.toIntOrNull()
@@ -113,14 +115,17 @@ abstract class Command {
                 Boolean::class -> given.toBoolean()
                 Byte::class -> given.toByteOrNull()
                 Short::class -> given.toShortOrNull()
-                else -> classifier
+                else -> given
             } ?: return "Please check your input. I couldn't convert everything to the right data type."
 
             any
-        }.toTypedArray()
+        }.toMutableList()
+
+        // Add the instance of the class to the arguments
+        typedArguments.add(0, this)
 
         // Calling the function of the sub command, if the result is null, we tell the user that something went wrong
-        val call = command.function.call(*typedArguments) ?: return "Something went wrong );"
+        val call = command.function.call(*typedArguments.toTypedArray()) ?: return "Something went wrong );"
 
         // If the result isn't a string, we convert it to one and send it back
         return call as? String ?: "Success: $call"
