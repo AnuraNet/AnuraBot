@@ -23,8 +23,7 @@ class Perms : Command() {
     fun list(): String {
         val clients = ts.databaseClients
                 .filter { perms.has(it.uniqueIdentifier) }
-                .map { "${it.nickname} - ${it.uniqueIdentifier}" }
-                .joinToString { "\n" }
+                .joinToString(separator = "\n") { "${it.nickname} - ${it.uniqueIdentifier}" }
 
         return "All users with permission: \n$clients"
     }

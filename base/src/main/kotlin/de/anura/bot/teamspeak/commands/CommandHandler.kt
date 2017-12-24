@@ -7,7 +7,8 @@ class CommandHandler {
 
     fun handle(text: String): String {
         // Splitting the text of the message
-        val (commandName, arguments) = text.split(' ', limit = 2)
+        val array = text.split(' ')
+        val commandName = array[0]
 
         // When the user wants help, he gets help
         if (commandName.equals("help", true)) {
@@ -18,13 +19,14 @@ class CommandHandler {
         val command = commands.find { command -> command.name.equals(commandName, true) } ?:
                 return "Sorry I couldn't find a command with this name );\n $help"
 
-        return command.handle(arguments.split(' '))
+        return command.handle(array.subList(1, array.size))
     }
 
     private fun buildHelp(): String {
-        val commandList = commands.map { command ->
-            "${command.name} - ${command.help}"
-        }.joinToString { "\n" }
+        // The space is needed for trimIndent to work
+        val commandList = commands.joinToString(separator = "\n            ") {
+            "${it.name} - ${it.help}"
+        }
 
         return """
             Hey I'm a bot and I can do lots of cool things. These cool actions are listed blow.

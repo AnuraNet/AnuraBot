@@ -30,7 +30,7 @@ object Database {
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
 
             // Table for groups with a time requirement
-            handle.execute("CREATE TABLE `time_group` ( " +
+            handle.execute("CREATE TABLE IF NOT EXISTS `time_group` ( " +
                     "  `ts_group` int(11) NOT NULL, " +
                     "  `required_time` int(11) DEFAULT NULL COMMENT 'Time in seconds', " +
                     "  PRIMARY KEY (`ts_group`) " +

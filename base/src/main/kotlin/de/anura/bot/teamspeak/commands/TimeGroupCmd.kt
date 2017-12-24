@@ -27,11 +27,11 @@ class TimeGroupCmd : Command() {
 
         // Convertes all to a String
         val list = groups.list()
-                .map {
+                .joinToString(separator = "\n") {
                     val name = tsGroups[it.tsGroup]?.name ?: " --- "
                     val hours = it.time / 60.0 / 60.0
                     "$name (${it.tsGroup}) - $hours h"
-                }.joinToString { "\n" }
+                }
 
         return "Following time groups exists: \n$list"
     }

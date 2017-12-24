@@ -3,22 +3,21 @@ package de.anura.bot.teamspeak.commands
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.cast
+import kotlin.reflect.full.declaredFunctions
 
 abstract class Command {
 
-    val name: String by lazy { constructorAnnotation(CommandName::class).name }
-    val help: String by lazy { constructorAnnotation(CommandHelp::class).help }
+    val name: String by lazy { classAnnotation(CommandName::class).name }
+    val help: String by lazy { classAnnotation(CommandHelp::class).help }
     private val subs: Map<String, SubCommand> by lazy { listSubs() }
     private val compiledHelp by lazy { generateHelp() }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <A : Annotation> constructorAnnotation(clazz: KClass<A>): A {
-        val annotations = this::class.primaryConstructor?.annotations
-        val matching = annotations
-                ?.mapNotNull { annotation -> annotation as? A }
-                .orEmpty()
+    private fun <A : Annotation> classAnnotation(clazz: KClass<A>): A {
+        val matching = this::class.annotations
+                .filter { clazz.isInstance(it) }
+                .map { clazz.cast(it) }
 
         if (matching.isEmpty()) {
             throw IllegalArgumentException("No @${clazz.simpleName} annotation")
@@ -28,9 +27,7 @@ abstract class Command {
     }
 
     private fun listSubs(): Map<String, SubCommand> {
-        return this::class.functions
-                // Selecting only functions which return strings
-                .filter { function -> function.returnType == String::class }
+        return this::class.declaredFunctions
                 // Trying to find the CommandHelp annotation
                 .map { function ->
                     val annotation = function.annotations
@@ -46,7 +43,8 @@ abstract class Command {
                 .map { pair ->
                     val help = (pair.second as CommandHelp).help
                     val arguments = pair.first.parameters
-                            .map { parameter -> Argument(parameter.name ?: "", parameter.type) }
+                            .filter { it.index > 0 }
+                            .map { Argument(it.name ?: "", it.type) }
 
                     SubCommand(pair.first, pair.first.name, help, arguments)
                 }
@@ -58,8 +56,13 @@ abstract class Command {
      * Generates a help message for a sub command
      */
     private fun generateSubHelp(cmd: SubCommand): String {
-        val arguments = cmd.arguments.map { "<${cmd.name}>" }.joinToString { " " }
-        return "${cmd.name} $arguments - ${cmd.help}"
+
+        val arguments = if (cmd.arguments.isNotEmpty())
+            cmd.arguments.joinToString(separator = " ") { "<${it.name}>" }
+        else
+            ""
+
+        return "${cmd.name} $arguments- ${cmd.help}"
     }
 
     /**
@@ -67,7 +70,8 @@ abstract class Command {
      */
     private fun generateHelp(): String {
         // Generating a list of a sub commands with their arguments and their description
-        val subCommands = subs.values.map { generateSubHelp(it) }.joinToString { "\n" }
+        // The space is needed for trimIndent()
+        val subCommands = subs.values.joinToString(separator = "\n            ") { generateSubHelp(it) }
 
         return """
             $name

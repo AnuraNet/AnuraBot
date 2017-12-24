@@ -19,6 +19,7 @@ object TsBot {
     private lateinit var eventListener: EventListener
     val api: TS3Api by lazy { query.api }
     var queryChannel: Int = -1
+    var queryClientId: Int = -1
 
     init {
         connect()
@@ -37,15 +38,20 @@ object TsBot {
                 val api = query?.api ?: return
                 connected = true
 
+                // Authenticating
                 api.login(appConfig.user, appConfig.password) // todo abort when the credentials are rejected
                 api.selectVirtualServerById(appConfig.virtualserver) // todo abort when this server doesn't exists
                 api.setNickname(appConfig.nickname)
 
                 logger.info("Connected to the Teamspeak server (${appConfig.host})")
 
+                // Registering events
                 api.registerEvent(TS3EventType.TEXT_PRIVATE)
                 api.registerEvent(TS3EventType.CHANNEL)
 
+                queryClientId = api.whoAmI().id
+
+                // Moving the query client to the channel, if it's set and found
                 val queryChannel = api.getChannelByNameExact(appConfig.channel, false)
                 if (queryChannel != null) {
                     api.moveQuery(queryChannel)
@@ -55,6 +61,7 @@ object TsBot {
                     logger.warn("Couldn't find the channel '${appConfig.channel}'.")
                 }
 
+                // Populating the cache with client data
                 api.clients.forEach { client ->
                     eventListener.populateCache(client)
                     TimeManager.load(client.uniqueIdentifier)

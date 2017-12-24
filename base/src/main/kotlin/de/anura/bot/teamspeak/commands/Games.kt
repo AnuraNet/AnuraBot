@@ -25,9 +25,8 @@ class Games : Command() {
     @CommandHelp("Lists all associations")
     fun list(): String {
 
-        val all = SteamConnector.list()
-                .map { "${it.key}  - ${it.value}" }
-                .joinToString { "\n" }
+        val all = SteamConnector.list().entries
+                .joinToString(separator = "\n") { "${it.key}  - ${it.value}" }
 
         return "The following associations were found: \nFormat: Steam Game Id - Teamspeak Icon Id \n$all"
     }
@@ -37,7 +36,7 @@ class Games : Command() {
         val removed = SteamConnector.removeIcon(gameId)
 
         return if (removed)
-            "The association of the game $gameId were removed"
+            "The association of the game $gameId was removed"
         else
             "No association was found for the $gameId, so noting was removed"
     }
