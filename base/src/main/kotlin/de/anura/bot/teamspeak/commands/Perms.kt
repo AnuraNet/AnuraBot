@@ -4,7 +4,7 @@ import de.anura.bot.teamspeak.Permissions
 import de.anura.bot.teamspeak.TsBot
 
 @CommandName("perms")
-@CommandHelp("Permissions for these commands")
+@CommandHelp("Manage permissions for this command interface")
 class Perms : Command() {
 
     private val perms = Permissions

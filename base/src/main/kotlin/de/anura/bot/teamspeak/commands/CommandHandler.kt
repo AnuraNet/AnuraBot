@@ -2,7 +2,7 @@ package de.anura.bot.teamspeak.commands
 
 class CommandHandler {
 
-    private val commands = listOf(Games(), Time(), Perms())
+    private val commands = listOf(Games(), Time(), TimeGroupCmd(), Perms())
     private val help by lazy { buildHelp() }
 
     fun handle(text: String): String {
@@ -25,7 +25,7 @@ class CommandHandler {
     private fun buildHelp(): String {
         // The space is needed for trimIndent to work
         val commandList = commands.joinToString(separator = "\n            ") {
-            "${it.name} - ${it.help}"
+            "[b]${it.name}[/b] - ${it.help}"
         }
 
         return """

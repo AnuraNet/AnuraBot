@@ -11,7 +11,7 @@ object SteamConnector {
 
     // The API for the Teamspeak server query
     private val ts = TsBot.api
-    // Steam Game Id <> Teamspeak Icon Id
+    // Steam Game Id <> Teamspeak Group Id
     private val icons = mutableMapOf<Int, Int>()
     // Teamspeak UID <> Timestamp
     private val delay = mutableMapOf<String, Long>()
@@ -54,13 +54,21 @@ object SteamConnector {
     /**
      * Removes an game icon association from the cache and the database
      *
+     * @param removeClients Whether all clients in this group should be removed from it
+     *
      * @return Whether a association was removed
      */
-    fun removeIcon(gameId: Int): Boolean {
+    fun removeIcon(gameId: Int, removeClients: Boolean): Boolean {
         val removed = icons.remove(gameId)
 
         Database.get().useHandleUnchecked {
             it.execute("DELETE FROM steam_game WHERE `id` = ?", gameId)
+        }
+
+        if (removed != null && removeClients) {
+            // Removing all clients from the group
+            val clients = ts.getServerGroupClients(removed)
+            clients.forEach { ts.removeClientFromServerGroup(removed, it.clientDatabaseId) }
         }
 
         return removed != null
@@ -101,12 +109,21 @@ object SteamConnector {
             return
         }
 
+        // All groups the user should have
+        val correctGroups = games.mapNotNull { icons[it.appid] }
+        // All groups (include non-game) groups the user have
+        val serverGroups = ts.getClientByUId(ev.uniqueClientIdentifier).serverGroups
+
         // Adding the missing groups for games to the user
-        val groups = ts.getClientByUId(ev.uniqueClientIdentifier).serverGroups
-        games.mapNotNull { icons[it.appid] }
-                // We don't try add existing groups
-                .filter { !groups.contains(it) }
+        correctGroups
+                .filter { !serverGroups.contains(it) }
                 .forEach { ts.addClientToServerGroup(it, ev.clientDatabaseId) }
+
+        // Removing the invalid groups from the user
+        serverGroups
+                .filter { icons.containsValue(it) }
+                .filter { !correctGroups.contains(it) }
+                .forEach { ts.removeClientFromServerGroup(it, ev.clientDatabaseId) }
 
         // Saving the current time for a delay
         delay.put(uid, System.currentTimeMillis())

@@ -59,7 +59,7 @@ abstract class Command {
     private fun generateSubHelp(cmd: SubCommand): String {
 
         val arguments = if (cmd.arguments.isNotEmpty())
-            cmd.arguments.joinToString(separator = " ") { "<${it.name}>" }
+            cmd.arguments.joinToString(separator = " ", postfix = " ") { "<${it.name}>" }
         else
             ""
 

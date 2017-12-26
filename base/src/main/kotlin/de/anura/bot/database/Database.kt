@@ -42,7 +42,7 @@ object Database {
                     "  `uid` varchar(50) DEFAULT NULL COMMENT 'TeamSpeak Unique ID', " +
                     "  `time` int(11) DEFAULT NULL, " +
                     "  `steam_id` varchar(100) DEFAULT NULL, " +
-                    "  `permission` int(2) DEFAULT NULL, " +
+                    "  `permission` int(2) DEFAULT '0', " +
                     "  PRIMARY KEY (`id`) " +
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
         }

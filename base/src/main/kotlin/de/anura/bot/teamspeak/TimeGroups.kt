@@ -34,7 +34,7 @@ object TimeGroups {
         // Filtering for groups which time is greater than the old time and less than the new time
         // As a Java expression it would look like this: old < group.time && group.time < new
         // Returing if there's no change in groups
-        val group = groups.filterValues { it.time in (old + 1)..(new - 1) }[0] ?: return
+        val group = groups.values.firstOrNull { it.time in (old + 1)..(new - 1) } ?: return
 
         // Getting the group which had the user before the new group
         val oldGroup = groups.values
@@ -109,14 +109,23 @@ object TimeGroups {
 
     /**
      * Removes the group with the [id] from the cache and the database
+     *
+     * @param removeClients Whether all clients in this group should be removed from it
      */
-    fun remove(id: Int): Boolean {
+    fun remove(id: Int, removeClients: Boolean): Boolean {
         // Removing from the cache
-        val remove = groups.remove(id)
+        val removed = groups.remove(id)
         // Removing it from the database
-        database.useHandleUnchecked { it.execute("DELETE FROM time_group WHERE id = ?", id) }
+        database.useHandleUnchecked { it.execute("DELETE FROM time_group WHERE ts_group = ?", id) }
+
+        if (removed != null && removeClients) {
+            // Removes all clients from this group
+            val clients = ts.getServerGroupClients(removed.tsGroup)
+            clients.forEach { ts.removeClientFromServerGroup(removed.tsGroup, it.clientDatabaseId) }
+        }
+
         // Returns whether something was deleted from the cache
-        return remove != null
+        return removed != null
     }
 
     data class TimeGroup(val tsGroup: Int, val time: Long)
