@@ -5,6 +5,7 @@ import com.github.theholywaffle.teamspeak3.api.TextMessageTargetMode
 import com.github.theholywaffle.teamspeak3.api.event.*
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client
 import de.anura.bot.teamspeak.commands.CommandHandler
+import de.anura.bot.web.WebServiceLoader
 import org.slf4j.LoggerFactory
 
 class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventAdapter() {
@@ -52,18 +53,30 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
 
         val oldChannel = client.channelId
         val newChannel = ev.targetChannelId
-        client.channelId = ev.targetChannelId // todo check whether we need to reinsert this
+        // Updating the channel id of the client
+        client.channelId = ev.targetChannelId
 
         if (newChannel == bot.queryChannel) {
-            api.sendPrivateMessage(ev.clientId, "Hey") // todo change message content
+            // The client joined the channel defined in the configuration
+            val url = WebServiceLoader.service.getLoginUrl(client.uniqueId)
+
+            val message = """
+                Hey,
+                to get [b]icons for your Steam games[/b] you have to connect your Teamspeak account with Steam.
+                Just [b]click on [URL=$url]this link[/URL][/b] and follow the instructions.
+                """.trimIndent()
+
+            api.sendPrivateMessage(ev.clientId, message)
+
+            // Moving the client back to its old channel
             api.moveClient(ev.clientId, oldChannel)
         }
 
     }
 
-
     override fun onClientJoin(ev: ClientJoinEvent) {
-        clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, 0) // todo check channel
+        val client = api.getClientInfo(ev.clientId)
+        clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, client.channelId)
 
         steam.setGroups(ev)
         TimeManager.load(ev.uniqueClientIdentifier)

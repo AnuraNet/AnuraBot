@@ -8,11 +8,9 @@ import de.anura.bot.teamspeak.TsBot
 import de.anura.bot.web.SteamAPI
 import de.anura.bot.web.SteamException
 import de.anura.bot.web.SteamHttpException
-import de.anura.bot.web.WebService
+import de.anura.bot.web.WebServiceLoader
 import org.jdbi.v3.core.ConnectionException
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.reflect.full.primaryConstructor
 
 fun main(args: Array<String>) {
 
@@ -56,7 +54,7 @@ fun main(args: Array<String>) {
 
     // Enabling the web service if required
     val web = try {
-        loadWeb(config, logger)
+        WebServiceLoader.service
     } catch (ex: ClassNotFoundException) {
         System.exit(1)
         null
@@ -68,34 +66,4 @@ fun main(args: Array<String>) {
         tsbot.disconnect()
     }))
 
-}
-
-private fun loadWeb(config: AppConfig, logger: Logger): WebService? {
-
-    val serviceClass = try {
-        Class.forName("de.anura.bot.web.NettyWebService").kotlin
-    } catch (ex: ClassNotFoundException) {
-        null
-    }
-
-    if (config.web.enabled) {
-        if (serviceClass == null) {
-            // The web service is enabled, but the jar isn't compiled with the web module
-            logger.error("The web service is enabled, but the jar isn't compiled with the web module!\n" +
-                    "Please disable the web serive in the configuration or use the jar compiled with the web module.")
-            throw ClassNotFoundException("Couldn't find the class NettyWebService")
-        } else {
-            // The web service is enabled and jar is compiled with the web module
-            val constructor = serviceClass.primaryConstructor
-            val newInstance = constructor?.call(config.web)
-            return newInstance as WebService
-        }
-    } else {
-        // Then web service isn't enabled
-        logger.info(when (serviceClass) {
-            null -> "Compiled with the web module but not enabled"
-            else -> "Compiled without the web module which isn't enabled"
-        })
-        return null
-    }
 }
