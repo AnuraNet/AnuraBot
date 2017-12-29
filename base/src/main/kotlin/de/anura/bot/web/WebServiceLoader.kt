@@ -38,8 +38,8 @@ object WebServiceLoader {
         } else {
             // Then web service isn't enabled
             logger.info(when (serviceClass) {
-                null -> "Compiled with the web module but not enabled"
-                else -> "Compiled without the web module which isn't enabled"
+                null -> "Compiled without the web module which isn't enabled"
+                else -> "Compiled with the web module but not enabled"
             })
             return null
         }
