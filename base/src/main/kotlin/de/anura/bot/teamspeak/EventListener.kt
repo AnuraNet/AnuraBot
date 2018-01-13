@@ -60,11 +60,20 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
             // The client joined the channel defined in the configuration
             val url = WebServiceLoader.service.getLoginUrl(client.uniqueId)
 
-            val message = """
+            val message = if (SteamConnector.isConnected(client.uniqueId)) {
+                """
+                Hey,
+                you're [b]already conncted[/b] with a Steam account.
+                To connect your Teamspeak identity with a
+                new Steam account [b]click on [URL=$url]this link[/URL][/b] and follow the instructions.
+                """.trimIndent()
+            } else {
+                """
                 Hey,
                 to get [b]icons for your Steam games[/b] you have to connect your Teamspeak account with Steam.
                 Just [b]click on [URL=$url]this link[/URL][/b] and follow the instructions.
                 """.trimIndent()
+            }
 
             api.sendPrivateMessage(ev.clientId, message)
 

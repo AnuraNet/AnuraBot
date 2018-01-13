@@ -87,46 +87,78 @@ object SteamConnector {
     }
 
     /**
-     * Checks whether the user of [ev] has all icons for his games
+     * Updates all games icons for the user with the [ev]
      */
     fun setGroups(ev: ClientJoinEvent) {
-        val uid = ev.uniqueClientIdentifier
-        // If the user joined too often, we skip the check
-        if (hasDelay(uid)) return
+        val uniqueId = ev.uniqueClientIdentifier
+        val databaseId = ev.clientDatabaseId
 
+        // If the user joined too often, we skip the check
+        if (hasDelay(uniqueId)) return
+
+        // Setting the groups
+        setGroups(uniqueId, databaseId)
+
+        // Saving the current time for a delay
+        delay.put(uniqueId, System.currentTimeMillis())
+    }
+
+    /**
+     * Updates all games icons for the user with the [uniqueId]
+     */
+    fun setGroups(uniqueId: String) {
+        // Searching for the client, but if he isn't online, we can't set groups
+        val client = ts.getClientByUId(uniqueId) ?: return
+
+        // Setting the groups
+        setGroups(uniqueId, client.databaseId)
+    }
+
+    private fun setGroups(uniqueId: String, databaseId: Int) {
         // Getting the Steam id of the user from the database. If it isn't set we don't continue
         val steamId = Database.get().withHandleUnchecked { handle ->
-            handle.select("SELECT steam_id FROM ts_user WHERE steam_id IS NOT NULL AND uid = ?", uid)
+            handle.select("SELECT steam_id FROM ts_user WHERE steam_id IS NOT NULL AND uid = ?", uniqueId)
                     .mapTo(String::class.java)
                     .findFirst()
         }
-        if (!steamId.isPresent) return
 
-        // Getting the owned games via the Steam API
-        val games = try {
-            SteamAPI.getOwnedGames(steamId.get())
-        } catch (ex: SteamException) {
-            return
+        val games = if (steamId.isPresent) {
+            // Getting the owned games via the Steam API
+            try {
+                SteamAPI.getOwnedGames(steamId.get())
+            } catch (ex: SteamException) {
+                return
+            }
+        } else {
+            // Returning an empty list of games
+            listOf()
         }
 
         // All groups the user should have
         val correctGroups = games.mapNotNull { icons[it.appid] }
         // All groups (include non-game) groups the user have
-        val serverGroups = ts.getClientByUId(ev.uniqueClientIdentifier).serverGroups
+        val serverGroups = ts.getClientByUId(uniqueId).serverGroups
 
         // Adding the missing groups for games to the user
         correctGroups
                 .filter { !serverGroups.contains(it) }
-                .forEach { ts.addClientToServerGroup(it, ev.clientDatabaseId) }
+                .forEach { ts.addClientToServerGroup(it, databaseId) }
 
         // Removing the invalid groups from the user
         serverGroups
                 .filter { icons.containsValue(it) }
                 .filter { !correctGroups.contains(it) }
-                .forEach { ts.removeClientFromServerGroup(it, ev.clientDatabaseId) }
+                .forEach { ts.removeClientFromServerGroup(it, databaseId) }
+    }
 
-        // Saving the current time for a delay
-        delay.put(uid, System.currentTimeMillis())
+    fun isConnected(uniqueId: String): Boolean {
+        val steamId = Database.get().withHandleUnchecked {
+            it.createQuery("SELECT steam_id FROM ts_user WHERE uid = ?")
+                    .bind(0, uniqueId)
+                    .mapTo(String::class.java)
+                    .findFirst()
+        }
+        return steamId.isPresent
     }
 
 }

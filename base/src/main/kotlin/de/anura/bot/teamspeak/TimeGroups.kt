@@ -54,13 +54,26 @@ object TimeGroups {
      * Invalid groups will be removed
      */
     fun check(ev: ClientJoinEvent) {
+        val uniqueId = ev.uniqueClientIdentifier
+        val databaseId = ev.clientDatabaseId
+
         // Getting the client groups from the string
         val clientGroups = ev.clientServerGroups.split(",").mapNotNull { it.toIntOrNull() }
+
+        check(uniqueId, databaseId, clientGroups)
+    }
+
+    /**
+     * Checks the time groups of a user when he joins.
+     * Invalid groups will be removed
+     */
+    private fun check(uniqueId: String, databaseId: Int, clientGroups: List<Int>) {
+
         // Filtering out the time groups of the user
         val timeGroups = clientGroups.filter { groups.containsKey(it) }
 
         // Getting the correct teamspeak group for the online time of the user
-        val time = TimeManager.get(ev.uniqueClientIdentifier)
+        val time = TimeManager.get(uniqueId)
         // Selecting with smalltest positive time difference => Searching for the correct group
         val correctGroup = groups.values
                 .filter { time - it.time > 0 }
@@ -69,11 +82,11 @@ object TimeGroups {
         // Removing the user from the wrong groups
         timeGroups
                 .filterNot { it == correctGroup.tsGroup }
-                .forEach { ts.removeClientFromServerGroup(it, ev.clientDatabaseId) }
+                .forEach { ts.removeClientFromServerGroup(it, databaseId) }
 
         // Adding the correct to the user if he hasn't got it
         if (!timeGroups.contains(correctGroup.tsGroup)) {
-            ts.addClientToServerGroup(correctGroup.tsGroup, ev.clientDatabaseId)
+            ts.addClientToServerGroup(correctGroup.tsGroup, databaseId)
         }
     }
 
@@ -82,7 +95,7 @@ object TimeGroups {
      *
      * @throws IllegalStateException If there's already a group with the same [time]
      */
-    fun add(tsGroup: Int, time: Long): TimeGroup {
+    fun add(tsGroup: Int, time: Long, addClients: Boolean): TimeGroup {
         // Checking for other groups with the same time
         if (groups.any { it.value.time == time }) {
             throw IllegalStateException("There's already a group with this time")
@@ -95,6 +108,14 @@ object TimeGroups {
         // And inserting it into the database
         database.useHandleUnchecked {
             it.execute("INSERT INTO time_group (ts_group, required_time) VALUES (?, ?)", tsGroup, time)
+        }
+
+        if (addClients) {
+            // Getting the next group with a little higher time requirement
+            val nextGroupTime = groups.values.filter { it.time > time }.minBy { it.time - time }?.time ?: Long.MAX_VALUE
+            // Adding all online clients with enough and not too much time to this group
+            ts.clients.filter { TimeManager.get(it.uniqueIdentifier) in time..nextGroupTime }
+                    .forEach { check(it.uniqueIdentifier, it.databaseId, it.serverGroups.asList()) }
         }
 
         return group

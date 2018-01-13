@@ -2,11 +2,12 @@ package de.anura.bot.web
 
 import de.anura.bot.config.WebConfig
 import de.anura.bot.database.Database
+import de.anura.bot.teamspeak.SteamConnector
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.queries
-import org.jdbi.v3.core.kotlin.useHandleUnchecked
+import org.jdbi.v3.core.kotlin.withHandleUnchecked
 import org.openid4java.consumer.ConsumerManager
 import org.openid4java.discovery.DiscoveryInformation
 import org.openid4java.message.AuthSuccess
@@ -71,16 +72,24 @@ class RequestHandler(
         // Requesting player data from Steam
         val player = SteamAPI.getPlayerSummaries(steamid) ?: return redirectToError(0x303)
         session.data["steamName"] = player.personaname
-        session.data["steamUrl"] = authSuccess.claimed
+        session.data["steamUrl"] = "https://steamcommunity.com/profiles/$steamid"
 
-        // Saving it to the database
-        try {
-            Database.get().useHandleUnchecked {
-                it.execute("UPDATE ts_user SET steam_id = ? WHERE uid = ?", steamid, uniqueId)
+        // Saving it to the database and getting the row
+        val rowChanges = try {
+            Database.get().withHandleUnchecked {
+                it.execute(
+                        "UPDATE ts_user SET steam_id = ? WHERE id = 1 AND (steam_id IS NULL OR steam_id NOT LIKE ?)",
+                        steamid, uniqueId, steamid)
             }
         } catch (ex: Exception) {
             // We show the user an error to, if there was an database error
             return redirectToError(0x304)
+        }
+
+        // Only updating the games if the steam_id has changed
+        if (rowChanges > 0) {
+            // Updating the groups on the Teamspeak
+            SteamConnector.setGroups(uniqueId)
         }
 
         return redirect("http://$host/success")
@@ -97,7 +106,7 @@ class RequestHandler(
         return textOK("<h3>Success</h3>" +
                 "Congratulations $name!<br/>" +
                 "Your <a href='$url'>Steam profile</a> is now connected with your Teamspeak Identity ($uniqueId).<br/>" +
-                "To get the icons for your games just rejoin.")
+                "You should get your game icons instant, if not just rejoin.")
     }
 
     /**

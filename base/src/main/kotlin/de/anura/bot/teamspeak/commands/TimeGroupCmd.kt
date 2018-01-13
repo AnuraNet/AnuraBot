@@ -15,7 +15,7 @@ class TimeGroupCmd : Command() {
     @CommandHelp("Adds a new time group. [Time] in seconds")
     fun add(tsGroup: Int, time: Long): String {
         try {
-            groups.add(tsGroup, time)
+            groups.add(tsGroup, time, true)
         } catch (ex: IllegalStateException) {
             return "There's already an group with the same time!"
         }
