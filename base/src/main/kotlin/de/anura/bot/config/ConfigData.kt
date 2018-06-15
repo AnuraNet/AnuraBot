@@ -17,10 +17,19 @@ data class WebConfig(
         val enabled: Boolean,
         val host: String,
         val port: Int,
+        val proxyUrl: String?,
         val externalUrl: String
 ) {
     fun hostUri(): String {
-        return if (port == 80 || port == 443) host else host + ":" + port
+        return proxyUri() ?: if (port == 80 || port == 443) host else "$host:$port"
+    }
+
+    fun proxyUri(): String? {
+        if (proxyUrl == null) {
+            return null
+        }
+        val regex = "https?://".toRegex()
+        return proxyUrl?.replace(regex, "")
     }
 }
 

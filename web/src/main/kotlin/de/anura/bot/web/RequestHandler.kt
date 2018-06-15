@@ -16,7 +16,7 @@ import org.openid4java.message.ParameterList
 
 class RequestHandler(
         private val request: Request,
-        private val host: String,
+        private val redirect: String,
         private val session: SessionManager.Session,
         private val config: WebConfig
 ) {
@@ -30,14 +30,14 @@ class RequestHandler(
 
         session.data["uniqueId"] = uniqueId
 
-        return redirect("http://$host/redirect")
+        return redirect("$redirect/redirect")
     }
 
     /**
      * This page redirect the user to the Steam login
      */
     fun redirect(idManager: ConsumerManager, discovered: DiscoveryInformation): Response {
-        val returnUrl = "http://$host/accept"
+        val returnUrl = "$redirect/accept"
         val authRequest = idManager.authenticate(discovered, returnUrl)
 
         return redirect(authRequest.getDestinationUrl(true))
@@ -54,7 +54,7 @@ class RequestHandler(
 
         // Listing the parameters and checking the result of the authentication
         val parameters = ParameterList(request.uri.queries().toMap())
-        val receivingUrl = "http://" + (request.header("Host") ?: config.hostUri()) + request.uri.path
+        val receivingUrl = redirect + request.uri.path
 
         val verification = try {
             idManager.verify(receivingUrl, parameters, discovered)
@@ -78,7 +78,7 @@ class RequestHandler(
         val rowChanges = try {
             Database.get().withHandleUnchecked {
                 it.execute(
-                        "UPDATE ts_user SET steam_id = ? WHERE id = 1 AND (steam_id IS NULL OR steam_id NOT LIKE ?)",
+                        "UPDATE ts_user SET steam_id = ? WHERE uid = ? AND (steam_id IS NULL OR steam_id NOT LIKE ?)",
                         steamid, uniqueId, steamid)
             }
         } catch (ex: Exception) {
@@ -92,7 +92,7 @@ class RequestHandler(
             SteamConnector.setGroups(uniqueId)
         }
 
-        return redirect("http://$host/success")
+        return redirect("$redirect/success")
     }
 
     /**
@@ -168,7 +168,7 @@ class RequestHandler(
     private fun redirectToError(code: Int): Response {
         session.data["errorCode"] = code.toString()
 
-        return redirect("http://$host/error")
+        return redirect("$redirect/error")
     }
 
 }

@@ -66,7 +66,8 @@ class NettyWebService(private val config: WebConfig) : WebService {
         // Updating the last access date of the session
         session.lastAccess = System.currentTimeMillis() / 1000
 
-        val handler = RequestHandler(request, host, session, config)
+        val redirectUrl = config.proxyUrl ?: if (host.isBlank()) config.hostUri() else "http://$host"
+        val handler = RequestHandler(request, redirectUrl, session, config)
 
         // Checking for the correct host
         if (!host.equals(config.hostUri(), true)) {
@@ -98,7 +99,11 @@ class NettyWebService(private val config: WebConfig) : WebService {
     override fun getLoginUrl(uid: String): String {
         val token = tokens.tokenFor(uid)
         val encodedToken = URLEncoder.encode(token, "UTF-8")
-        return "http://${config.host}:${config.port}/authenticate?token=$encodedToken"
+        return if (config.proxyUrl != null) {
+            "${config.proxyUrl}/authenticate?token=$encodedToken"
+        } else {
+            "http://${config.host}:${config.port}/authenticate?token=$encodedToken"
+        }
     }
 
 }

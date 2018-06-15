@@ -48,6 +48,7 @@ object AppConfig {
                 getBoolean("web", "enabled"),
                 getString("web", "host"),
                 getInt("web", "port"),
+                if (getString("web", "proxy_url").equals("null", true)) null else getString("web", "proxy_url"),
                 getString("web", "external_url")
         )
 

@@ -32,12 +32,12 @@
         <dependency>
             <groupId>org.http4k</groupId>
             <artifactId>http4k-core</artifactId>
-            <version>3.6.1</version>
+            <version>3.29.0</version>
         </dependency>
         <dependency>
             <groupId>org.http4k</groupId>
             <artifactId>http4k-server-netty</artifactId>
-            <version>3.6.1</version>
+            <version>3.29.0</version>
         </dependency>
 
         <!-- OpenID -->
