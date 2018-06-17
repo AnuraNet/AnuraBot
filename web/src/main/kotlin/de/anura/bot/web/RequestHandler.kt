@@ -67,7 +67,7 @@ class RequestHandler(
 
         // Extracting the Steam Id
         val authSuccess = verification.authResponse as AuthSuccess
-        val steamid = authSuccess.claimed.replace("http://steamcommunity.com/openid/id/", "")
+        val steamid = authSuccess.claimed.replace("https://steamcommunity.com/openid/id/", "", true)
 
         // Requesting player data from Steam
         val player = SteamAPI.getPlayerSummaries(steamid) ?: return redirectToError(0x303)
