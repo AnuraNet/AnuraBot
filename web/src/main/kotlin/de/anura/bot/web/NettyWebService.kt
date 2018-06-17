@@ -26,7 +26,7 @@ class NettyWebService(private val config: WebConfig) : WebService {
         // todo change logging behavior of id manager
         idManager.maxAssocAttempts = 0
 
-        val discoveries = idManager.discover("http://steamcommunity.com/openid")
+        val discoveries = idManager.discover("https://steamcommunity.com/openid")
         discovered = idManager.associate(discoveries)
 
         start()
