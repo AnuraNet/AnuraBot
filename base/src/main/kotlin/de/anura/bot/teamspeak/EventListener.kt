@@ -16,7 +16,7 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
     private val clients = mutableMapOf<Int, TeamspeakClient>()
 
     fun populateCache(client: Client) {
-        clients.put(client.id, TeamspeakClient(client.id, client.uniqueIdentifier, client.channelId))
+        clients[client.id] = TeamspeakClient(client.id, client.uniqueIdentifier, client.channelId)
     }
 
     fun clearCache() {

@@ -6,17 +6,20 @@ import de.anura.bot.web.SteamAPI
 import de.anura.bot.web.SteamException
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
+import org.slf4j.LoggerFactory
+import java.time.Instant
 
 object SteamConnector {
 
-    // The API for the Teamspeak server query
+    // If the user join more than once in 2 minutes we don't check his games again
+    private const val delayTime = 1
+
     private val ts = TsBot.api
     // Steam Game Id <> Teamspeak Group Id
     private val icons = mutableMapOf<Int, Int>()
-    // Teamspeak UID <> Timestamp
-    private val delay = mutableMapOf<String, Long>()
-    // If the user join more than once in 5 minutes we don't check his games
-    private val delayTime = 5
+    // Teamspeak UID <> Instant
+    private val delay = mutableMapOf<String, Instant>()
+    private val logger = LoggerFactory.getLogger(SteamConnector.javaClass)
 
     init {
         loadIcons()
@@ -30,7 +33,7 @@ object SteamConnector {
             it.select("SELECT * FROM steam_game")
                     .map { rs, _ -> Pair(rs.getInt("id"), rs.getInt("icon_id")) }
                     .stream()
-                    .forEach { pair -> icons.put(pair.first, pair.second) }
+                    .forEach { pair -> icons[pair.first] = pair.second }
         }
     }
 
@@ -38,10 +41,12 @@ object SteamConnector {
      * Adds an game icon association to the cache and the database
      */
     fun addIcon(gameId: Int, iconId: Int) {
-        icons.put(gameId, iconId)
+        icons[gameId] = iconId
         Database.get().useHandleUnchecked {
             it.execute("INSERT INTO steam_game (`id`, icon_id) VALUES (?, ?)", gameId, iconId)
         }
+        // todo Check all Steam games of the online users and add the group if needed
+        // todo => Maybe cache the Steam games
     }
 
     /**
@@ -78,12 +83,12 @@ object SteamConnector {
      * Returns whether the game of the user should be checked
      */
     private fun hasDelay(uid: String): Boolean {
-        // The timestamp of the last check may not be grater than the allowed time
-        val allowedTime = System.currentTimeMillis() - delayTime * 60 * 1000
-        // The timestamp of the last check
-        val lastTime = delay.getOrDefault(uid, 0)
+        // The timestamp of the last check. If it isn't set there's no delay
+        val lastTime = delay[uid] ?: return false
+        // The last time plus the delay
+        val allowedTime = lastTime.plusSeconds((delayTime * 60).toLong())
 
-        return lastTime > allowedTime
+        return Instant.now().isAfter(allowedTime)
     }
 
     /**
@@ -94,18 +99,22 @@ object SteamConnector {
         val databaseId = ev.clientDatabaseId
 
         // If the user joined too often, we skip the check
-        if (hasDelay(uniqueId)) return
+        if (hasDelay(uniqueId)) {
+            logger.info("Not setting groups for ${ev.clientNickname}, because of the delay")
+            return
+        }
 
         // Setting the groups
         setGroups(uniqueId, databaseId)
 
         // Saving the current time for a delay
-        delay.put(uniqueId, System.currentTimeMillis())
+        delay[uniqueId] = Instant.now()
     }
 
     /**
      * Updates all games icons for the user with the [uniqueId]
      */
+    // todo Call this function for every user when starting the bot
     fun setGroups(uniqueId: String) {
         // Searching for the client, but if he isn't online, we can't set groups
         val client = ts.getClientByUId(uniqueId) ?: return
@@ -138,6 +147,12 @@ object SteamConnector {
         val correctGroups = games.mapNotNull { icons[it.appid] }
         // All groups (include non-game) groups the user have
         val serverGroups = ts.getClientByUId(uniqueId).serverGroups
+
+        // D! This is just a debug message
+        val mappedGames = games.joinToString(separator = ", ") { it.appid.toString() }
+        val mappedGroups = correctGroups.joinToString(separator = ", ") { it.toString() }
+        logger.info("Games of $uniqueId: $mappedGames\nCorrect Groups: $mappedGroups")
+        // D! End of the debug message part
 
         // Adding the missing groups for games to the user
         correctGroups

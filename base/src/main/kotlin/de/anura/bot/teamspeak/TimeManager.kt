@@ -67,7 +67,7 @@ object TimeManager {
         val before = get(uid)
         val after = before + time
 
-        clientTime.put(uid, after)
+        clientTime[uid] = after
         listeners.forEach { it(uid, before, after) }
     }
 

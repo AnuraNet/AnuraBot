@@ -5,8 +5,8 @@ import java.util.concurrent.TimeUnit
 
 object ActivityCounter {
 
-    private val maxIdleTime = 5 * 60
-    private val delay = 60L
+    private const val maxIdleTime = 5 * 60
+    private const val delay = 60L
     private val ts = TsBot.api
 
     init {
