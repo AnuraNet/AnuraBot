@@ -26,7 +26,7 @@
 
         <kotlin.version>1.2.50</kotlin.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
-        <kotlin.compiler.incremental>false</kotlin.compiler.incremental>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
         <main.class>de.anura.bot.BotStartupKt</main.class>
     </properties>
