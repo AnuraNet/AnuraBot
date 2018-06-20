@@ -12,7 +12,7 @@ import java.time.Instant
 object SteamConnector {
 
     // If the user join more than once in 2 minutes we don't check his games again
-    private const val delayTime = 1
+    private const val delayTime = 2
 
     private val ts = TsBot.api
     // Steam Game Id <> Teamspeak Group Id
@@ -83,12 +83,15 @@ object SteamConnector {
      * Returns whether the game of the user should be checked
      */
     private fun hasDelay(uid: String): Boolean {
+        // If the user has permissions there should be no delay
         // The timestamp of the last check. If it isn't set there's no delay
+        if (Permissions.has(uid)) return false
+
         val lastTime = delay[uid] ?: return false
         // The last time plus the delay
         val allowedTime = lastTime.plusSeconds((delayTime * 60).toLong())
 
-        return Instant.now().isAfter(allowedTime)
+        return allowedTime.isAfter(Instant.now())
     }
 
     /**
