@@ -179,4 +179,24 @@ object SteamConnector {
         return steamId.isPresent
     }
 
+    /**
+     * Disconnects a [uniqueId] from its Steam account.
+     * Returns whether it was connected with a Steam account.
+     */
+    fun disconnect(uniqueId: String): Boolean {
+        val rows = Database.get().withHandleUnchecked {
+            it.execute("UPDATE ts_user SET steam_id = NULL WHERE uid = ? AND (steam_id IS NOT NULL)", uniqueId)
+        }
+
+        if (rows == 0) {
+            // Nothing changed
+            return false
+        }
+
+        setGroups(uniqueId)
+
+        // Disconnects a user and returns whether
+        return true
+    }
+
 }

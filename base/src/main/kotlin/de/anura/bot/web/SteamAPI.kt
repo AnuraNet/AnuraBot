@@ -8,7 +8,7 @@ import org.json.JSONObject
  */
 object SteamAPI {
     private var key = ""
-    private val base = "http://api.steampowered.com"
+    private const val base = "http://api.steampowered.com"
 
     /**
      * Gets basic profile information for the player

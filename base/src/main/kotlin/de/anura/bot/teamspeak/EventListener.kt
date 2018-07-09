@@ -27,12 +27,26 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
         // We only handle direct messages to the bot as commands
         if (ev.targetMode == TextMessageTargetMode.CLIENT && ev.getInt("target") == bot.queryClientId) {
 
+            val message = ev.message.trim()
+
+            // Let the user disconnect its Steam connection
+            if (message.equals("disconnect", true)) {
+                val disconnected = SteamConnector.disconnect(ev.invokerUniqueId)
+
+                val answerMessage = if (disconnected) {
+                    "Your Steam account has been disconnected"
+                } else {
+                    "A Steam account isn't connected to this Teamspeak identity"
+                }
+                api.sendPrivateMessage(ev.invokerId, answerMessage)
+
+                return
+            }
+
             if (!Permissions.has(ev.invokerUniqueId)) {
                 api.sendPrivateMessage(ev.invokerId, "You don't have the permission to use commands!")
                 return
             }
-
-            val message = ev.message.trim()
 
             // Catching exceptions during the command execution
             val result = try {
@@ -64,8 +78,12 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
                 """
                 Hey,
                 you're [b]already conncted[/b] with a Steam account.
-                To connect your Teamspeak identity with a
-                new Steam account [b]click on [URL=$url]this link[/URL][/b] and follow the instructions.
+
+                To [b]connect[/b] your Teamspeak identity with a
+                new Steam account click on [URL=$url]this link[/URL] and follow the instructions.
+
+                To [b]disconnect[/b] your Steam account
+                send this bot a message with the content [b]disconnect[/b].
                 """.trimIndent()
             } else {
                 """
