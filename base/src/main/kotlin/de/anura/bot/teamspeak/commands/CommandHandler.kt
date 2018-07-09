@@ -2,7 +2,7 @@ package de.anura.bot.teamspeak.commands
 
 class CommandHandler {
 
-    private val commands = listOf(Games(), Time(), TimeGroupCmd(), Perms())
+    private val commands = listOf(Games(), Time(), TimeGroupCmd(), Perms(), Users())
     private val help by lazy { buildHelp() }
 
     fun handle(text: String): String {
