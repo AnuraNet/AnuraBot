@@ -36,12 +36,25 @@ object TsBot {
         config.setConnectionHandler(object : ConnectionHandler {
             override fun onConnect(query: TS3Query?) {
                 val api = query?.api ?: return
-                connected = true
 
                 // Authenticating
-                api.login(appConfig.user, appConfig.password) // todo abort when the credentials are rejected
-                api.selectVirtualServerById(appConfig.virtualserver) // todo abort when this server doesn't exists
+                if (!api.login(appConfig.user, appConfig.password)) {
+                    // If the credentials are rejected, we stop the bot
+                    logger.error("Can't connect to the Teamspeak server, " +
+                            "because the credentials were rejected", appConfig.virtualserver)
+                    connected = false
+                    return
+                }
+                if (!api.selectVirtualServerById(appConfig.virtualserver)) {
+                    // If a server with the id doesn't exists, we stop the bot
+                    logger.error("Can't connect to the Teamspeak server, " +
+                            "because there's no virtaul server with the id '{}'", appConfig.virtualserver)
+                    connected = false
+                    return
+                }
                 api.setNickname(appConfig.nickname)
+
+                connected = true
 
                 logger.info("Connected to the Teamspeak server (${appConfig.host})")
 
