@@ -37,6 +37,11 @@ java -jar anura-bot-1.0-SNAPSHOT.jar
 A new config file should appear in this folder and the program will stop after that.
 Then edit the file (it's usally called `config.ini`) and start the jar again.
 
+You may want to interact with the bot. To do this you have to assign yourself a permission. 
+After the first run go to the database table `ts_user`, search for your 
+`uid` (The unique id of your Teamspeak identity) and set the `permission` column to `1`. 
+Restart and enjoy controlling the bot via chat.
+
 Congratulations your bot is now up and running.
 If you encounter any issues feel free to report them.
 
