@@ -23,11 +23,10 @@ class NettyWebService(private val config: WebConfig) : WebService {
     private val sessions = SessionManager()
 
     init {
-        // todo change logging behavior of id manager
         idManager.maxAssocAttempts = 0
 
         val discoveries = idManager.discover("https://steamcommunity.com/openid")
-        discovered = idManager.associate(discoveries)
+        discovered = discoveries[0] as DiscoveryInformation
 
         start()
     }
