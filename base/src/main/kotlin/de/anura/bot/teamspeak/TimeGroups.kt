@@ -76,7 +76,7 @@ object TimeGroups {
         val time = TimeManager.get(uniqueId)
         // Selecting with smalltest positive time difference => Searching for the correct group
         val correctGroup = groups.values
-                .filter { time - it.time > 0 }
+                .filter { time - it.time >= 0 }
                 .minBy { time - it.time } ?: return
 
         // Removing the user from the wrong groups
