@@ -34,7 +34,7 @@ object TimeGroups {
         // Filtering for groups which time is greater than the old time and less than the new time
         // As a Java expression it would look like this: old < group.time && group.time < new
         // Returing if there's no change in groups
-        val group = groups.values.firstOrNull { it.time in (old + 1)..(new - 1) } ?: return
+        val group = groups.values.firstOrNull { it.time in old..new } ?: return
 
         // Getting the group which had the user before the new group
         val oldGroup = groups.values
