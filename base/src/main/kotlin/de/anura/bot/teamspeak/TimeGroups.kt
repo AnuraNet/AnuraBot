@@ -32,6 +32,11 @@ object TimeGroups {
      * The listener function for the TimeManager
      */
     private fun listen(uid: String, old: Duration, new: Duration) {
+        // We don't add groups to the serveradmin account
+        if (uid.equals("serveradmin", true)) {
+            return
+        }
+
         // Filtering for groups which time is greater than the old time and less than the new time
         // As a Java expression it would look like this: old < group.time && group.time < new
         // Returing if there's no change in groups
@@ -69,6 +74,10 @@ object TimeGroups {
      * Invalid groups will be removed
      */
     private fun check(uniqueId: String, databaseId: Int, clientGroups: List<Int>) {
+        // We don't add groups to the serveradmin account
+        if (uniqueId.equals("serveradmin", true)) {
+            return
+        }
 
         // Filtering out the time groups of the user
         val timeGroups = clientGroups.filter { groups.containsKey(it) }
@@ -124,6 +133,8 @@ object TimeGroups {
 
             // Adding all online clients with enough and not too much time to this group
             ts.clients
+                    // We don't add groups to the serveradmin account
+                    .filter { client -> !client.uniqueIdentifier.equals("serveradmin", true) }
                     .filter { client -> TimeManager.get(client.uniqueIdentifier) in time..nextGroupTime }
                     .forEach { client ->
                         check(client.uniqueIdentifier, client.databaseId, client.serverGroups.asList())

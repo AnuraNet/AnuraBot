@@ -126,6 +126,11 @@ object SteamConnector {
     }
 
     private fun setGroups(uniqueId: String, databaseId: Int) {
+        // We don't add groups to the serveradmin account
+        if (uniqueId.equals("serveradmin", true)) {
+            return
+        }
+
         // Getting the Steam id of the user from the database. If it isn't set we don't continue
         val steamId = Database.get().withHandleUnchecked { handle ->
             handle.select("SELECT steam_id FROM ts_user WHERE steam_id IS NOT NULL AND uid = ?", uniqueId)
