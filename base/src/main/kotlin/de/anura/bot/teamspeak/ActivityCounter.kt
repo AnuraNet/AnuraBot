@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 
 object ActivityCounter {
 
-    private const val maxIdleTime = 5 * 60 * 1000
+    private val maxIdleTime = Duration.ofMinutes(5)
     private const val delay = 30L
     private val ts = TsBot.api
 
@@ -16,7 +16,7 @@ object ActivityCounter {
 
     private fun run() {
         ts.clients.stream()
-                .filter { client -> client.idleTime < maxIdleTime }
+                .filter { client -> Duration.ofMillis(client.idleTime) < maxIdleTime }
                 .forEach { client -> TimeManager.add(client.uniqueIdentifier, Duration.ofSeconds(delay)) }
     }
 }
