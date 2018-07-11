@@ -1,6 +1,6 @@
 package de.anura.bot
 
-import com.github.theholywaffle.teamspeak3.api.exception.TS3ConnectionFailedException
+import com.github.theholywaffle.teamspeak3.api.exception.TS3Exception
 import de.anura.bot.config.AppConfig
 import de.anura.bot.config.ConfigException
 import de.anura.bot.database.Database
@@ -47,7 +47,7 @@ fun main(args: Array<String>) {
     // Connecting to the teamspeak server
     val tsbot = try {
         TsBot
-    } catch (ex: TS3ConnectionFailedException) {
+    } catch (ex: TS3Exception) {
         logger.error("Couldn't connect to the teamspeak server:", ex)
         return
     }
@@ -60,10 +60,10 @@ fun main(args: Array<String>) {
         null
     }
 
-    Runtime.getRuntime().addShutdownHook(Thread({
+    Runtime.getRuntime().addShutdownHook(Thread {
         Scheduler.stop()
         web?.stop()
         tsbot.disconnect()
-    }))
+    })
 
 }

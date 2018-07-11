@@ -4,6 +4,7 @@ import com.github.theholywaffle.teamspeak3.TS3Api
 import com.github.theholywaffle.teamspeak3.TS3Config
 import com.github.theholywaffle.teamspeak3.TS3Query
 import com.github.theholywaffle.teamspeak3.api.event.TS3EventType
+import com.github.theholywaffle.teamspeak3.api.exception.TS3CommandFailedException
 import com.github.theholywaffle.teamspeak3.api.reconnect.ConnectionHandler
 import com.github.theholywaffle.teamspeak3.api.reconnect.ReconnectStrategy
 import de.anura.bot.config.AppConfig
@@ -36,10 +37,17 @@ object TsBot {
 
         config.setConnectionHandler(object : ConnectionHandler {
             override fun onConnect(query: TS3Query?) {
-                val api = query?.api ?: return
+                val api = if (query?.api != null) {
+                    query.api
+                } else {
+                    logger.error("There's no Teamspeak query while connecting")
+                    return
+                }
 
                 // Authenticating
-                if (!api.login(appConfig.user, appConfig.password)) {
+                try {
+                    api.login(appConfig.user, appConfig.password)
+                } catch (ex: TS3CommandFailedException) {
                     // If the credentials are rejected, we stop the bot
                     logger.error("Can't connect to the Teamspeak server, " +
                             "because the credentials were rejected", appConfig.virtualserver)
@@ -49,7 +57,10 @@ object TsBot {
                     }
                     return
                 }
-                if (!api.selectVirtualServerById(appConfig.virtualserver)) {
+                // Selecting the correct virtual server
+                try {
+                    api.selectVirtualServerById(appConfig.virtualserver)
+                } catch (ex: TS3CommandFailedException) {
                     // If a server with the id doesn't exists, we stop the bot
                     logger.error("Can't connect to the Teamspeak server, " +
                             "because there's no virtaul server with the id '{}'", appConfig.virtualserver)
@@ -59,6 +70,7 @@ object TsBot {
                     }
                     return
                 }
+
                 api.setNickname(appConfig.nickname)
 
                 connected = true
@@ -88,13 +100,16 @@ object TsBot {
                 }
 
                 if (firstJoin) {
-                    logger.info("Adding missing time & game groups to all online users...")
-                    SteamConnector.setAllClientsGroups()
-                    TimeGroups.checkAllClients()
+                    // This must be done in a thread, otherwise it would block the whole ts3 api
+                    Thread {
+                        Thread.sleep(15)
+                        logger.info("Adding missing time & game groups to all online users...")
+                        SteamConnector.setAllClientsGroups()
+                        TimeGroups.checkAllClients()
+                    }.start()
                 }
 
                 firstJoin = false
-
             }
 
             override fun onDisconnect(query: TS3Query?) {
@@ -111,8 +126,8 @@ object TsBot {
         query = TS3Query(config)
 
         // Creating the EventListener & registering it
-        eventListener = EventListener(this, api)
-        api.addTS3Listeners(eventListener)
+        eventListener = EventListener(this, query)
+        query.api.addTS3Listeners(eventListener)
 
         // Connecting to the teamspeak server
         query.connect()
