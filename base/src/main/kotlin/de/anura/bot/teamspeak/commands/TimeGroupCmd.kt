@@ -4,6 +4,7 @@ import de.anura.bot.teamspeak.TimeGroups
 import de.anura.bot.teamspeak.TsBot
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Duration
 
 @CommandName("timegroup")
 @CommandHelp("Manage groups users get for their online time")
@@ -15,7 +16,7 @@ class TimeGroupCmd : Command() {
     @CommandHelp("Adds a new time group. [Time] in seconds")
     fun add(tsGroup: Int, time: Long): String {
         try {
-            groups.add(tsGroup, time, true)
+            groups.add(tsGroup, Duration.ofSeconds(time), true)
         } catch (ex: IllegalStateException) {
             return "There's already an group with the same time!"
         }
@@ -31,7 +32,7 @@ class TimeGroupCmd : Command() {
         val list = groups.list()
                 .joinToString(separator = "\n") {
                     val name = tsGroups[it.tsGroup]?.name ?: " --- "
-                    val hours = BigDecimal(it.time / 60.0 / 60.0).setScale(2, RoundingMode.HALF_UP)
+                    val hours = BigDecimal(it.time.seconds / 60.0 / 60.0).setScale(2, RoundingMode.HALF_UP)
                     "$name (${it.tsGroup}) - $hours h"
                 }
 

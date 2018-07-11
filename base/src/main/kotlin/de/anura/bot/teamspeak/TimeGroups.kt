@@ -4,6 +4,7 @@ import com.github.theholywaffle.teamspeak3.api.event.ClientJoinEvent
 import de.anura.bot.database.Database
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
+import java.time.Duration
 
 object TimeGroups {
 
@@ -20,7 +21,7 @@ object TimeGroups {
         // Loading from the database
         database.withHandleUnchecked {
             it.select("SELECT * FROM time_group")
-                    .map { rs, _ -> TimeGroup(rs.getInt("ts_group"), rs.getLong("required_time")) }
+                    .map { rs, _ -> TimeGroup(rs.getInt("ts_group"), Duration.ofSeconds(rs.getLong("required_time"))) }
                     .list()
         }.forEach { groups[it.tsGroup] = it }
         // Adding the listener
@@ -30,7 +31,7 @@ object TimeGroups {
     /**
      * The listener function for the TimeManager
      */
-    private fun listen(uid: String, old: Long, new: Long) {
+    private fun listen(uid: String, old: Duration, new: Duration) {
         // Filtering for groups which time is greater than the old time and less than the new time
         // As a Java expression it would look like this: old < group.time && group.time < new
         // Returing if there's no change in groups
@@ -76,7 +77,7 @@ object TimeGroups {
         val time = TimeManager.get(uniqueId)
         // Selecting with smalltest positive time difference => Searching for the correct group
         val correctGroup = groups.values
-                .filter { time - it.time >= 0 }
+                .filter { !(time - it.time).isNegative }
                 .minBy { time - it.time } ?: return
 
         // Removing the user from the wrong groups
@@ -95,7 +96,7 @@ object TimeGroups {
      *
      * @throws IllegalStateException If there's already a group with the same [time]
      */
-    fun add(tsGroup: Int, time: Long, addClients: Boolean): TimeGroup {
+    fun add(tsGroup: Int, time: Duration, addClients: Boolean): TimeGroup {
         // Checking for other groups with the same time
         if (groups.any { it.value.time == time }) {
             throw IllegalStateException("There's already a group with this time")
@@ -107,15 +108,22 @@ object TimeGroups {
 
         // And inserting it into the database
         database.useHandleUnchecked {
-            it.execute("INSERT INTO time_group (ts_group, required_time) VALUES (?, ?)", tsGroup, time)
+            it.execute("INSERT INTO time_group (ts_group, required_time) VALUES (?, ?)", tsGroup, time.seconds)
         }
 
         if (addClients) {
             // Getting the next group with a little higher time requirement
-            val nextGroupTime = groups.values.filter { it.time > time }.minBy { it.time - time }?.time ?: Long.MAX_VALUE
+            val nextGroupTime: Duration = groups.values
+                    .filter { it.time > time }
+                    .minBy { it.time.minus(time) }
+                    ?.time ?: Duration.ofSeconds(Long.MAX_VALUE)
+
             // Adding all online clients with enough and not too much time to this group
-            ts.clients.filter { TimeManager.get(it.uniqueIdentifier) in time..nextGroupTime }
-                    .forEach { check(it.uniqueIdentifier, it.databaseId, it.serverGroups.asList()) }
+            ts.clients
+                    .filter { client -> TimeManager.get(client.uniqueIdentifier) in time..nextGroupTime }
+                    .forEach { client ->
+                        check(client.uniqueIdentifier, client.databaseId, client.serverGroups.asList())
+                    }
         }
 
         return group
@@ -149,6 +157,6 @@ object TimeGroups {
         return removed != null
     }
 
-    data class TimeGroup(val tsGroup: Int, val time: Long)
+    data class TimeGroup(val tsGroup: Int, val time: Duration)
 
 }

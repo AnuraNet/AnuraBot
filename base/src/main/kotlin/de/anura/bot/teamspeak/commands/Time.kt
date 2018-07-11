@@ -15,7 +15,7 @@ class Time : Command() {
     @CommandHelp("Shows how long the user was active on this Teamspeak")
     fun show(uniqueId: String): String {
         // Converting from seconds to hours and rounding it to 2 decimals
-        val time = BigDecimal.valueOf(TimeManager.get(uniqueId) / 60.0 / 60.0).setScale(2, RoundingMode.HALF_UP)
+        val time = BigDecimal.valueOf(TimeManager.get(uniqueId).seconds / 60.0 / 60.0).setScale(2, RoundingMode.HALF_UP)
         // User info from the database
         val client = ts.getDatabaseClientByUId(uniqueId)
 

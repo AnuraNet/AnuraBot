@@ -1,6 +1,7 @@
 package de.anura.bot.teamspeak
 
 import de.anura.bot.Scheduler
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 object ActivityCounter {
@@ -16,6 +17,6 @@ object ActivityCounter {
     private fun run() {
         ts.clients.stream()
                 .filter { client -> client.idleTime < maxIdleTime }
-                .forEach { client -> TimeManager.add(client.uniqueIdentifier, delay) }
+                .forEach { client -> TimeManager.add(client.uniqueIdentifier, Duration.ofSeconds(delay)) }
     }
 }
