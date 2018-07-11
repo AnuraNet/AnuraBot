@@ -40,19 +40,24 @@ object TimeGroups {
         // Filtering for groups which time is greater than the old time and less than the new time
         // As a Java expression it would look like this: old < group.time && group.time < new
         // Returing if there's no change in groups
-        val group = groups.values.firstOrNull { it.time in old..new } ?: return
+        val group = groups.values.lastOrNull { it.time in old..new } ?: return
 
         // Getting the group which had the user before the new group
         val oldGroup = groups.values
-                .filter { it.time < group.time }
-                .minBy { group.time - it.time }
+                .filter { otherGroup -> otherGroup.time < group.time }
+                .minBy { otherGroup -> group.time - otherGroup.time }
 
-        val databaseId = ts.getClientByUId(uid).databaseId
+        val clientInfo = ts.getClientByUId(uid)
+        val databaseId = clientInfo.databaseId
 
-        // Adding the new group to the user
-        ts.addClientToServerGroup(group.tsGroup, databaseId)
-        // Removing the old server group
-        if (oldGroup != null) ts.removeClientFromServerGroup(oldGroup.tsGroup, databaseId)
+        // Adding the new group to the user if isn't a member of it
+        if (!clientInfo.serverGroups.contains(group.tsGroup)) {
+            ts.addClientToServerGroup(group.tsGroup, databaseId)
+        }
+        // Removing the old server group if he's a member of it
+        if (oldGroup != null && clientInfo.serverGroups.contains(oldGroup.tsGroup)) {
+            ts.removeClientFromServerGroup(oldGroup.tsGroup, databaseId)
+        }
     }
 
     /**
