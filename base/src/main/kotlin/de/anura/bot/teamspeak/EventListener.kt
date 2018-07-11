@@ -1,6 +1,6 @@
 package de.anura.bot.teamspeak
 
-import com.github.theholywaffle.teamspeak3.TS3Api
+import com.github.theholywaffle.teamspeak3.TS3Query
 import com.github.theholywaffle.teamspeak3.api.TextMessageTargetMode
 import com.github.theholywaffle.teamspeak3.api.event.*
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client
@@ -8,8 +8,10 @@ import de.anura.bot.teamspeak.commands.CommandHandler
 import de.anura.bot.web.WebServiceLoader
 import org.slf4j.LoggerFactory
 
-class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventAdapter() {
+class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter() {
 
+    private val api = query.api
+    private val asyncApi = query.asyncApi
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val steam = SteamConnector
     private val commands = CommandHandler()
@@ -38,13 +40,13 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
                 } else {
                     "A Steam account isn't connected to this Teamspeak identity"
                 }
-                api.sendPrivateMessage(ev.invokerId, answerMessage)
+                asyncApi.sendPrivateMessage(ev.invokerId, answerMessage)
 
                 return
             }
 
             if (!Permissions.has(ev.invokerUniqueId)) {
-                api.sendPrivateMessage(ev.invokerId, "You don't have the permission to use commands!")
+                asyncApi.sendPrivateMessage(ev.invokerId, "You don't have the permission to use commands!")
                 return
             }
 
@@ -53,11 +55,11 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
                 commands.handle(message)
             } catch (ex: Exception) {
                 logger.warn("There was an error while executing the command '{}'", message, ex)
-                api.sendPrivateMessage(ev.invokerId, "There was an error while running your command ):")
+                asyncApi.sendPrivateMessage(ev.invokerId, "There was an error while running your command ):")
                 return
             }
             // Sending the result to the user
-            api.sendPrivateMessage(ev.invokerId, result)
+            asyncApi.sendPrivateMessage(ev.invokerId, result)
         }
     }
 
@@ -93,21 +95,26 @@ class EventListener(private val bot: TsBot, private val api: TS3Api) : TS3EventA
                 """.trimIndent()
             }
 
-            api.sendPrivateMessage(ev.clientId, message)
+            asyncApi.sendPrivateMessage(ev.clientId, message)
 
             // Moving the client back to its old channel
-            api.moveClient(ev.clientId, oldChannel)
+            asyncApi.moveClient(ev.clientId, oldChannel)
         }
 
     }
 
     override fun onClientJoin(ev: ClientJoinEvent) {
-        val client = api.getClientInfo(ev.clientId)
-        clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, client.channelId)
+        asyncApi.getClientInfo(ev.clientId).onSuccess { info ->
 
-        steam.setGroups(ev)
-        TimeManager.load(ev.uniqueClientIdentifier)
-        TimeGroups.check(ev)
+            clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, info.channelId)
+
+            steam.setGroups(ev)
+            TimeManager.load(ev.uniqueClientIdentifier)
+            TimeGroups.check(ev)
+
+        }.onFailure { ex ->
+            logger.warn("Couldn't get client info on join for {}", ev.clientId, ex)
+        }
     }
 
     override fun onClientLeave(ev: ClientLeaveEvent) {
