@@ -14,6 +14,7 @@ object TsBot {
     private val appConfig = AppConfig.teamspeak
     private var connected = false
     private val logger = LoggerFactory.getLogger(javaClass)
+    private var firstJoin = true
 
     private lateinit var query: TS3Query
     private lateinit var eventListener: EventListener
@@ -43,6 +44,9 @@ object TsBot {
                     logger.error("Can't connect to the Teamspeak server, " +
                             "because the credentials were rejected", appConfig.virtualserver)
                     connected = false
+                    if (firstJoin) {
+                        System.exit(1)
+                    }
                     return
                 }
                 if (!api.selectVirtualServerById(appConfig.virtualserver)) {
@@ -50,6 +54,9 @@ object TsBot {
                     logger.error("Can't connect to the Teamspeak server, " +
                             "because there's no virtaul server with the id '{}'", appConfig.virtualserver)
                     connected = false
+                    if (firstJoin) {
+                        System.exit(1)
+                    }
                     return
                 }
                 api.setNickname(appConfig.nickname)
@@ -79,6 +86,14 @@ object TsBot {
                     eventListener.populateCache(client)
                     TimeManager.load(client.uniqueIdentifier)
                 }
+
+                if (firstJoin) {
+                    logger.info("Adding missing time & game groups to all online users...")
+                    SteamConnector.setAllClientsGroups()
+                    TimeGroups.checkAllClients()
+                }
+
+                firstJoin = false
 
             }
 

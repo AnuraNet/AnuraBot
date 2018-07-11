@@ -91,6 +91,10 @@ object TimeGroups {
         }
     }
 
+    fun checkAllClients() {
+        ts.clients.forEach { client -> check(client.uniqueIdentifier, client.databaseId, client.serverGroups.asList()) }
+    }
+
     /**
      * Adds a group to the cache and the database and returns it with the id
      *

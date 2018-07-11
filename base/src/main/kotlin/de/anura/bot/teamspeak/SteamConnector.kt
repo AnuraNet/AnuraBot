@@ -45,8 +45,8 @@ object SteamConnector {
         Database.get().useHandleUnchecked {
             it.execute("INSERT INTO steam_game (`id`, icon_id) VALUES (?, ?)", gameId, iconId)
         }
-        // todo Check all Steam games of the online users and add the group if needed
-        // todo => Maybe cache the Steam games
+        // Updating the Steam groups of all online clients
+        setAllClientsGroups()
     }
 
     /**
@@ -117,7 +117,6 @@ object SteamConnector {
     /**
      * Updates all games icons for the user with the [uniqueId]
      */
-    // todo Call this function for every user when starting the bot
     fun setGroups(uniqueId: String) {
         // Searching for the client, but if he isn't online, we can't set groups
         val client = ts.getClientByUId(uniqueId) ?: return
@@ -167,6 +166,10 @@ object SteamConnector {
                 .filter { icons.containsValue(it) }
                 .filter { !correctGroups.contains(it) }
                 .forEach { ts.removeClientFromServerGroup(it, databaseId) }
+    }
+
+    fun setAllClientsGroups() {
+        ts.clients.forEach { client -> setGroups(client.uniqueIdentifier, client.databaseId) }
     }
 
     fun isConnected(uniqueId: String): Boolean {

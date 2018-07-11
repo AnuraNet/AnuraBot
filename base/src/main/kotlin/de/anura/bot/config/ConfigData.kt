@@ -29,7 +29,7 @@ data class WebConfig(
             return null
         }
         val regex = "https?://".toRegex()
-        return proxyUrl?.replace(regex, "")
+        return proxyUrl.replace(regex, "")
     }
 }
 
