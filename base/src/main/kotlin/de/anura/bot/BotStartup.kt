@@ -1,6 +1,7 @@
 package de.anura.bot
 
 import com.github.theholywaffle.teamspeak3.api.exception.TS3Exception
+import de.anura.bot.async.Scheduler
 import de.anura.bot.config.AppConfig
 import de.anura.bot.config.ConfigException
 import de.anura.bot.database.Database

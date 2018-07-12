@@ -4,13 +4,13 @@ import com.github.theholywaffle.teamspeak3.TS3Query
 import com.github.theholywaffle.teamspeak3.api.TextMessageTargetMode
 import com.github.theholywaffle.teamspeak3.api.event.*
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client
+import de.anura.bot.async.Scheduler
 import de.anura.bot.teamspeak.commands.CommandHandler
 import de.anura.bot.web.WebServiceLoader
 import org.slf4j.LoggerFactory
 
 class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter() {
 
-    private val api = query.api
     private val asyncApi = query.asyncApi
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val steam = SteamConnector
@@ -121,7 +121,7 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
         val client = clients.remove(ev.clientId)
 
         if (client != null) {
-            TimeManager.save(client.uniqueId, true)
+            Scheduler.execute { TimeManager.save(client.uniqueId, true) }
         }
     }
 

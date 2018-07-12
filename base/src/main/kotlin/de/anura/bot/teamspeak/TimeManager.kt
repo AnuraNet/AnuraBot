@@ -1,12 +1,10 @@
 package de.anura.bot.teamspeak
 
-import de.anura.bot.Scheduler
 import de.anura.bot.database.Database
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 object TimeManager {
 
@@ -15,7 +13,6 @@ object TimeManager {
     private val logger = LoggerFactory.getLogger(TimeManager.javaClass)
 
     init {
-        Scheduler.service.scheduleWithFixedDelay({ saveAll(false) }, 15, 15, TimeUnit.MINUTES)
         ActivityCounter
     }
 
@@ -72,7 +69,6 @@ object TimeManager {
 
         clientTime[uid] = after
         listeners.forEach { it(uid, before, after) }
-        // todo save the time in an external thread
     }
 
     fun save(uid: String, remove: Boolean) {
@@ -91,7 +87,14 @@ object TimeManager {
     }
 
     fun saveAll(remove: Boolean) {
-        clientTime.keys.forEach { uid -> save(uid, false) }
+        Database.get().useHandleUnchecked {
+            val batch = it.prepareBatch("UPDATE ts_user SET time = ? WHERE uid = ?")
+            clientTime.forEach { uid, time -> batch.add(time.seconds, uid) }
+            if (batch.size() > 0) {
+                batch.execute()
+            }
+            batch.close()
+        }
         if (remove) clientTime.clear()
     }
 
