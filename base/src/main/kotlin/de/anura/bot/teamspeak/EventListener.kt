@@ -4,7 +4,6 @@ import com.github.theholywaffle.teamspeak3.TS3Query
 import com.github.theholywaffle.teamspeak3.api.TextMessageTargetMode
 import com.github.theholywaffle.teamspeak3.api.event.*
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client
-import de.anura.bot.async.Scheduler
 import de.anura.bot.teamspeak.commands.CommandHandler
 import de.anura.bot.web.WebServiceLoader
 import org.slf4j.LoggerFactory
@@ -118,11 +117,21 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     }
 
     override fun onClientLeave(ev: ClientLeaveEvent) {
-        val client = clients.remove(ev.clientId)
+        val client = clients.remove(ev.clientId) ?: return
 
-        if (client != null) {
-            Scheduler.execute { TimeManager.save(client.uniqueId, true) }
+        asyncApi.getClientByUId(client.uniqueId).onSuccess { _ ->
+            // We just save the data, but don't delete it from the cache,
+            // because another user with the same uid is online.
+            // When we would delete it and add time (the next time), the time
+            // would start from 0 and so an invalid would be later saved to the database.
+            TimeManager.save(client.uniqueId, false)
+            logger.info("Only soft saving the time of {}, because he/she was with multiple accounts online",
+                    client.uniqueId)
+        }.onFailure { _ ->
+            // We save the data of the user (& delete it), because no other user with the same uid is online
+            TimeManager.save(client.uniqueId, true)
         }
+
     }
 
     data class TeamspeakClient(var clientId: Int, val uniqueId: String, var channelId: Int)

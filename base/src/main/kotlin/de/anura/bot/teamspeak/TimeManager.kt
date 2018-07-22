@@ -64,7 +64,7 @@ object TimeManager {
      * @param time Time to add in seconds
      */
     fun add(uid: String, time: Duration) {
-        val before = get(uid)
+        val before = get(uid, true)
         val after = before + time
 
         clientTime[uid] = after
