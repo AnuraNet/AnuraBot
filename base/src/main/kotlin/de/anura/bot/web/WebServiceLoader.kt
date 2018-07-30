@@ -55,9 +55,9 @@ object WebServiceLoader {
 
             // Appending the unique id to the url
             return if (externalUrl.contains('?')) {
-                externalUrl + "&uid=$encodedUid"
+                "$externalUrl&uid=$encodedUid"
             } else {
-                externalUrl + "?uid=$encodedUid"
+                "$externalUrl?uid=$encodedUid"
             }
         }
 
