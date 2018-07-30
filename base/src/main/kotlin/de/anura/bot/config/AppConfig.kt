@@ -41,7 +41,8 @@ object AppConfig {
                 getInt("teamspeak", "virtualserver"),
                 getString("teamspeak", "nickname"),
                 getString("teamspeak", "channel"),
-                getFloodRate("teamspeak", "flood_rate")
+                getFloodRate("teamspeak", "flood_rate"),
+                getInt("teamspeak", "maxSteamGroups")
         )
 
         web = WebConfig(

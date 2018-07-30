@@ -10,7 +10,8 @@ data class TsConfig(
         val virtualserver: Int,
         val nickname: String,
         val channel: String,
-        val floodRate: TS3Query.FloodRate
+        val floodRate: TS3Query.FloodRate,
+        val maxSteamGroups: Int
 )
 
 data class WebConfig(
