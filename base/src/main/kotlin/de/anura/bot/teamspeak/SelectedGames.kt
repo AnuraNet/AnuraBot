@@ -44,13 +44,16 @@ object SelectedGames {
         val ownedIds = ownedGames.map { game -> game.appid }
 
         val baseSelected = querySelectedGames(uniqueId)
-        val updatedSelected = baseSelected
-                // The game must be stil present in the user's steam account, maybe he changed the connected account
-                .filter { game -> ownedIds.contains(game) }
-                .apply {
-                    val diff = size - AppConfig.web.maxSteamGroups
-                    if (diff > 0) dropLast(diff)
-                }
+        val updatedSelected = if (baseSelected.isNotEmpty()) {
+            // The game must be stil present in the user's steam account, maybe he changed the connected account
+            baseSelected.filter { game -> ownedIds.contains(game) }
+        } else {
+            // The user selected no games, so we display just so many how are allowed
+            ownedIds
+        }.apply {
+            val diff = size - AppConfig.web.maxSteamGroups
+            if (diff > 0) dropLast(diff)
+        }
 
         if (baseSelected.size != updatedSelected.size) {
             saveSelectedGames(uniqueId, updatedSelected)
