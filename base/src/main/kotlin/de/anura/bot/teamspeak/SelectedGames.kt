@@ -47,8 +47,10 @@ object SelectedGames {
         val updatedSelected = baseSelected
                 // The game must be stil present in the user's steam account, maybe he changed the connected account
                 .filter { game -> ownedIds.contains(game) }
-                .windowed(AppConfig.web.maxSteamGroups)
-                .getOrElse(0) { emptyList() }
+                .apply {
+                    val diff = size - AppConfig.web.maxSteamGroups
+                    if (diff > 0) dropLast(diff)
+                }
 
         if (baseSelected.size != updatedSelected.size) {
             saveSelectedGames(uniqueId, updatedSelected)

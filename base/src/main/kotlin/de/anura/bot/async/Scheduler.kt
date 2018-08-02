@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 object Scheduler {
 
     private val factory: ReportingFactory = ReportingFactory("Scheduler")
-    private val service: ScheduledExecutorService = Executors.newScheduledThreadPool(2, factory)
+    private val service: ScheduledExecutorService = Executors.newScheduledThreadPool(3, factory)
 
     fun scheduleAtFixedRate(runnable: () -> Unit, initialDelay: Long, period: Long, timeUnit: TimeUnit) {
         service.scheduleAtFixedRate(transformRunnable(runnable), initialDelay, period, timeUnit)
