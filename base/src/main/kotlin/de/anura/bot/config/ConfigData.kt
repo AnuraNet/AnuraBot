@@ -10,8 +10,7 @@ data class TsConfig(
         val virtualserver: Int,
         val nickname: String,
         val channel: String,
-        val floodRate: TS3Query.FloodRate,
-        val maxSteamGroups: Int
+        val floodRate: TS3Query.FloodRate
 )
 
 data class WebConfig(
@@ -19,6 +18,7 @@ data class WebConfig(
         val host: String,
         val port: Int,
         val proxyUrl: String?,
+        val maxSteamGroups: Int,
         val externalUrl: String
 ) {
     fun hostUri(): String {

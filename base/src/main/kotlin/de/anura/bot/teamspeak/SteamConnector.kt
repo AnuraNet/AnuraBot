@@ -2,8 +2,6 @@ package de.anura.bot.teamspeak
 
 import com.github.theholywaffle.teamspeak3.api.event.ClientJoinEvent
 import de.anura.bot.database.Database
-import de.anura.bot.web.SteamAPI
-import de.anura.bot.web.SteamException
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
 import org.slf4j.LoggerFactory
@@ -138,27 +136,22 @@ object SteamConnector {
                     .findFirst()
         }
 
-        val games = if (steamId.isPresent) {
-            // Getting the owned games via the Steam API
-            try {
-                SteamAPI.getOwnedGames(steamId.get())
-            } catch (ex: SteamException) {
-                return
-            }
+        val selectedGames = if (steamId.isPresent) {
+            SelectedGames.queryAndUpdateGames(uniqueId, steamId.get())
         } else {
             // Returning an empty list of games
             listOf()
         }
 
         // All groups the user should have
-        val correctGroups = games.mapNotNull { icons[it.appid] }
+        val correctGroups = selectedGames.mapNotNull { icons[it.appid] }
         // All groups (include non-game) groups the user have
         val serverGroups = ts.getClientByUId(uniqueId).serverGroups
 
         // D! This is just a debug message
-        val mappedGames = games.joinToString(separator = ", ") { it.appid.toString() }
+        val mappedGames = selectedGames.joinToString(separator = ", ") { it.appid.toString() }
         val mappedGroups = correctGroups.joinToString(separator = ", ") { it.toString() }
-        logger.info("Games of $uniqueId: $mappedGames\nCorrect Groups: $mappedGroups")
+        logger.debug("Games of $uniqueId: $mappedGames\nCorrect Groups: $mappedGroups")
         // D! End of the debug message part
 
         // Adding the missing groups for games to the user
@@ -178,13 +171,16 @@ object SteamConnector {
     }
 
     fun isConnected(uniqueId: String): Boolean {
+        return getSteamId(uniqueId) != null
+    }
+
+    fun getSteamId(uniqueId: String): String? {
         val steamId = Database.get().withHandleUnchecked {
-            it.createQuery("SELECT steam_id FROM ts_user WHERE uid = ?")
-                    .bind(0, uniqueId)
+            it.select("SELECT steam_id FROM ts_user WHERE steam_id IS NOT NULL AND uid = ?", uniqueId)
                     .mapTo(String::class.java)
                     .findFirst()
         }
-        return steamId.isPresent
+        return steamId.orElse(null)
     }
 
     /**
@@ -193,6 +189,7 @@ object SteamConnector {
      */
     fun disconnect(uniqueId: String): Boolean {
         val rows = Database.get().withHandleUnchecked {
+            SelectedGames.saveSelectedGames(uniqueId, emptyList())
             it.execute("UPDATE ts_user SET steam_id = NULL WHERE uid = ? AND (steam_id IS NOT NULL)", uniqueId)
         }
 

@@ -41,8 +41,7 @@ object AppConfig {
                 getInt("teamspeak", "virtualserver"),
                 getString("teamspeak", "nickname"),
                 getString("teamspeak", "channel"),
-                getFloodRate("teamspeak", "flood_rate"),
-                getInt("teamspeak", "maxSteamGroups")
+                getFloodRate("teamspeak", "flood_rate")
         )
 
         web = WebConfig(
@@ -50,6 +49,7 @@ object AppConfig {
                 getString("web", "host"),
                 getInt("web", "port"),
                 if (getString("web", "proxy_url").equals("null", true)) null else getString("web", "proxy_url"),
+                getInt("web", "maxSteamGroups"),
                 getString("web", "external_url")
         )
 

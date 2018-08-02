@@ -78,7 +78,8 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
 
         if (newChannel == bot.queryChannel) {
             // The client joined the channel defined in the configuration
-            val url = WebServiceLoader.service.getLoginUrl(client.uniqueId)
+            val loginUrl = WebServiceLoader.service.getLoginUrl(client.uniqueId)
+            val gamesUrl = WebServiceLoader.service.getSelectGamesUrl(client.uniqueId)
 
             val message = if (SteamConnector.isConnected(client.uniqueId)) {
                 """
@@ -86,7 +87,10 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
                 you're [b]already conncted[/b] with a Steam account.
 
                 To [b]connect[/b] your Teamspeak identity with a
-                new Steam account click on [URL=$url]this link[/URL] and follow the instructions.
+                new Steam account click on [URL=$loginUrl]this link[/URL] and follow the instructions.
+
+                To [b]change the game icon[/b] which are shown on Teamspeak
+                click on [URL=$gamesUrl]this link[/URL] and follow the instructions.
 
                 To [b]disconnect[/b] your Steam account
                 send this bot a message with the content [b]disconnect[/b].
@@ -95,7 +99,7 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
                 """
                 Hey,
                 to get [b]icons for your Steam games[/b] you have to connect your Teamspeak account with Steam.
-                Just [b]click on [URL=$url]this link[/URL][/b] and follow the instructions.
+                Just [b]click on [URL=$loginUrl]this link[/URL][/b] and follow the instructions.
                 """.trimIndent()
             }
 

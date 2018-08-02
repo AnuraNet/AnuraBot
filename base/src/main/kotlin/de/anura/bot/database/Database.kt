@@ -45,6 +45,15 @@ object Database {
                     "  `permission` int(2) DEFAULT '0', " +
                     "  PRIMARY KEY (`id`) " +
                     ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
+
+            // Table for the selected games of the user
+            handle.execute("CREATE TABLE IF NOT EXISTS `selected_game` ( " +
+                    "  `user_id` int(11) NOT NULL, " +
+                    "  `game_id` int(11) NOT NULL COMMENT 'The Steam App Id', " +
+                    "  PRIMARY KEY (`user_id`,`game_id`), " +
+                    "  CONSTRAINT `selected_game_ts_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `ts_user` (`id`) " +
+                    "    ON DELETE CASCADE ON UPDATE CASCADE " +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=latin1")
         }
     }
 

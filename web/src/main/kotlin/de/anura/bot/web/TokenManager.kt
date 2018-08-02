@@ -13,14 +13,15 @@ class TokenManager {
     private val tokens = mutableMapOf<String, Token>()
 
     /**
-     * Generates and saves a token for the [uniqueId]
+     * Generates and saves a token for the [uniqueId] with a custom [tag]
+     * Tokens duplications with the same [uniqueId] and [tag] will be removed when creating a new one
      */
-    fun tokenFor(uniqueId: String): String {
+    fun tokenFor(uniqueId: String, tag: String): String {
         // Searching for other tokens with the same unique id and removing them
-        tokens.values.removeIf { it.uniqueId == uniqueId }
+        tokens.values.removeIf { it.tag == tag && it.uniqueId == uniqueId }
 
         // Generating the token and adding it to the cache
-        val token = generateToken(uniqueId)
+        val token = generateToken(uniqueId, tag)
         tokens[token.token] = token
 
         // Returing the token string
@@ -58,7 +59,7 @@ class TokenManager {
         return foundToken
     }
 
-    private fun generateToken(uniqueId: String): Token {
+    private fun generateToken(uniqueId: String, tag: String): Token {
         // Generating a random sequenze of strings
         val tokenString = Random().ints(tokenLength.toLong(), 0, tokenChars.length)
                 .asSequence()
@@ -66,15 +67,15 @@ class TokenManager {
                 .joinToString(separator = "")
 
         // If another token with same token string exists, we'll generate a new string
-        if (findToken(tokenString) != null) return generateToken(uniqueId)
+        if (findToken(tokenString) != null) return generateToken(uniqueId, tag)
 
-        return Token(tokenString, timestamp(), uniqueId)
+        return Token(tokenString, timestamp(), tag, uniqueId)
     }
 
     private fun timestamp(): Long {
         return System.currentTimeMillis() / 1000
     }
 
-    data class Token(val token: String, val created: Long, val uniqueId: String)
+    data class Token(val token: String, val created: Long, val tag: String, val uniqueId: String)
 
 }
