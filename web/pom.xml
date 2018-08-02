@@ -16,6 +16,10 @@
     <name>AnuraBotWeb</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <http4k.version>3.34.0</http4k.version>
+    </properties>
+
 
     <!-- Dependencies -->
 
@@ -32,12 +36,12 @@
         <dependency>
             <groupId>org.http4k</groupId>
             <artifactId>http4k-core</artifactId>
-            <version>3.29.0</version>
+            <version>${http4k.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4k</groupId>
             <artifactId>http4k-server-netty</artifactId>
-            <version>3.29.0</version>
+            <version>${http4k.version}</version>
         </dependency>
 
         <!-- OpenID -->
