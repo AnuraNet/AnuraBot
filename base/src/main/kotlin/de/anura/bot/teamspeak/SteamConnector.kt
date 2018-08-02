@@ -148,12 +148,6 @@ object SteamConnector {
         // All groups (include non-game) groups the user have
         val serverGroups = ts.getClientByUId(uniqueId).serverGroups
 
-        // D! This is just a debug message
-        val mappedGames = selectedGames.joinToString(separator = ", ") { it.appid.toString() }
-        val mappedGroups = correctGroups.joinToString(separator = ", ") { it.toString() }
-        logger.debug("Games of $uniqueId: $mappedGames\nCorrect Groups: $mappedGroups")
-        // D! End of the debug message part
-
         // Adding the missing groups for games to the user
         correctGroups
                 .filter { !serverGroups.contains(it) }
