@@ -49,16 +49,26 @@ object WebServiceLoader {
 
         private val config = AppConfig
 
-        override fun getLoginUrl(uid: String): String {
+        // Maybe we can the improve the security with encrypting the [uid] paramter:
+        // https://github.com/AnuraNet/AnuraBot/issues/9
+        private fun getUrl(call: String, uid: String): String {
             val externalUrl = config.web.externalUrl
             val encodedUid = URLEncoder.encode(uid, "UTF-8")
 
             // Appending the unique id to the url
             return if (externalUrl.contains('?')) {
-                externalUrl + "&uid=$encodedUid"
+                "$externalUrl&call=$call&uid=$encodedUid"
             } else {
-                externalUrl + "?uid=$encodedUid"
+                "$externalUrl?call=$call&uid=$encodedUid"
             }
+        }
+
+        override fun getLoginUrl(uid: String): String {
+            return getUrl("authenticate", uid)
+        }
+
+        override fun getSelectGamesUrl(uid: String): String {
+            return getUrl("selectgames", uid)
         }
 
         override fun stop() {

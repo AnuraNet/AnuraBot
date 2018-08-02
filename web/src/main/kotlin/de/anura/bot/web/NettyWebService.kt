@@ -1,6 +1,10 @@
 package de.anura.bot.web
 
 import de.anura.bot.config.WebConfig
+import de.anura.bot.web.handlers.AssetRequestHandler
+import de.anura.bot.web.handlers.ConnectRequestHandler
+import de.anura.bot.web.handlers.DefaultRequestHandler
+import de.anura.bot.web.handlers.SelectRequestHandler
 import org.http4k.core.HttpHandler
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -66,22 +70,41 @@ class NettyWebService(private val config: WebConfig) : WebService {
         session.lastAccess = System.currentTimeMillis() / 1000
 
         val redirectUrl = config.proxyUrl ?: if (host.isBlank()) config.hostUri() else "http://$host"
-        val handler = RequestHandler(request, redirectUrl, session, config)
+        val requestInfo = RequestInfo(request, redirectUrl, session, config, tokens)
+
+        val connectHandler = ConnectRequestHandler(requestInfo)
+        val selectHandler = SelectRequestHandler(requestInfo)
+        val assetHandler = AssetRequestHandler(requestInfo)
+        val defaultHandler = DefaultRequestHandler(requestInfo)
 
         // Checking for the correct host
         if (!host.equals(config.hostUri(), true)) {
             logger.warn("Request from invalid host: $host")
-            return handler.mainPage()
+            return defaultHandler.mainPage()
         }
 
         // Routing
-        val response = when (request.uri.path.toLowerCase()) {
-            "/authenticate" -> handler.authenticate(tokens)
-            "/accept" -> handler.accept(idManager, discovered)
-            "/error" -> handler.error()
-            "/redirect" -> handler.redirect(idManager, discovered)
-            "/success" -> handler.success()
-            else -> handler.mainPage()
+        val response = try {
+            when (request.uri.path.toLowerCase()) {
+            // Connecting Steam
+                "/authenticate" -> connectHandler.authenticate()
+                "/accept" -> connectHandler.accept(idManager, discovered)
+                "/redirecttosteam" -> connectHandler.redirect(idManager, discovered)
+                "/success" -> connectHandler.success()
+
+            // Selecting games
+                "/selectgames" -> selectHandler.selectGames()
+
+            // Serving assets
+                "/assets/js/selectgames.js" -> assetHandler.serveAsset("/assets/js/selectgames.js")
+
+            // Handling errors
+                "/error" -> defaultHandler.error()
+                else -> defaultHandler.mainPage()
+            }
+        } catch (ex: WebException) {
+            logger.error("Error ({}) while serving route: {}", ex.code, request.uri.path, ex)
+            defaultHandler.handleError(ex)
         }
 
         return if (session.fresh) {
@@ -93,16 +116,31 @@ class NettyWebService(private val config: WebConfig) : WebService {
         }
     }
 
+    data class RequestInfo(
+            val request: Request,
+            val redirect: String,
+            val session: SessionManager.Session,
+            val config: WebConfig,
+            val tokens: TokenManager
+    )
+
     // Url
 
-    override fun getLoginUrl(uid: String): String {
-        val token = tokens.tokenFor(uid)
+    private fun generateUrl(uid: String, path: String): String {
+        val token = tokens.tokenFor(uid, path)
         val encodedToken = URLEncoder.encode(token, "UTF-8")
         return if (config.proxyUrl != null) {
-            "${config.proxyUrl}/authenticate?token=$encodedToken"
+            "${config.proxyUrl}/$path?token=$encodedToken"
         } else {
-            "http://${config.host}:${config.port}/authenticate?token=$encodedToken"
+            "http://${config.host}:${config.port}/$path?token=$encodedToken"
         }
     }
 
+    override fun getLoginUrl(uid: String): String {
+        return generateUrl(uid, "authenticate")
+    }
+
+    override fun getSelectGamesUrl(uid: String): String {
+        return generateUrl(uid, "selectgames")
+    }
 }

@@ -18,6 +18,7 @@ data class WebConfig(
         val host: String,
         val port: Int,
         val proxyUrl: String?,
+        val maxSteamGroups: Int,
         val externalUrl: String
 ) {
     fun hostUri(): String {

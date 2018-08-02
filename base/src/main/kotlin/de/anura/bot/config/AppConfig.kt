@@ -49,6 +49,7 @@ object AppConfig {
                 getString("web", "host"),
                 getInt("web", "port"),
                 if (getString("web", "proxy_url").equals("null", true)) null else getString("web", "proxy_url"),
+                getInt("web", "maxSteamGroups"),
                 getString("web", "external_url")
         )
 
