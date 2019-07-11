@@ -27,6 +27,18 @@ object SelectedGames {
     }
 
     /**
+     * Returns all games a user with the [steamId] owns on Steam
+     */
+    private fun getOwnedGames(steamId: String): List<SteamGame> {
+        return try {
+            SteamAPI.getOwnedGames(steamId)
+        } catch (ex: SteamException) {
+            logger.warn("Couldn't get Steam games for {}", steamId)
+            emptyList()
+        }
+    }
+
+    /**
      * Queries the database for the games which a user has selected.
      * And checks whether this selection is still valid.
      * If not it's updated and saved to the database.
@@ -35,32 +47,62 @@ object SelectedGames {
      */
     public fun queryAndUpdateGames(uniqueId: String, steamId: String): List<SteamGame> {
         // Getting the owned games via the Steam API
-        val ownedGames = try {
-            SteamAPI.getOwnedGames(steamId)
-        } catch (ex: SteamException) {
-            logger.warn("Couldn't get Steam games for {}", steamId)
-            return emptyList()
-        }
+        val ownedGames = getOwnedGames(steamId)
         val ownedIds = ownedGames.map { game -> game.appid }
 
         val baseSelected = querySelectedGames(uniqueId)
         val updatedSelected = if (baseSelected.isNotEmpty()) {
-            // The game must be stil present in the user's steam account, maybe he changed the connected account
-            baseSelected.filter { game -> ownedIds.contains(game) }
+            // The game must be still present in the user's steam account, maybe he changed the connected account
+            val owned = baseSelected.filter { game -> ownedIds.contains(game) }
+            shortenSelection(owned)
         } else {
-            // The user selected no games, so we display just so many how are allowed
-            ownedIds
-        }.apply {
-            val diff = size - AppConfig.web.maxSteamGroups
-            if (diff > 0) dropLast(diff)
+            // The user selected no games, so we don't display a game
+            baseSelected
         }
 
-        if (baseSelected.size != updatedSelected.size) {
+        if (baseSelected != updatedSelected) {
             saveSelectedGames(uniqueId, updatedSelected)
         }
 
         return ownedGames
                 .filter { game -> updatedSelected.contains(game.appid) }
+    }
+
+    /**
+     * Removes the last part of the selection if there are more selected games than are allowed.
+     *
+     * @return A list of [SteamGame] which is equal to or shorter than the maximum number of games.
+     */
+    private fun shortenSelection(games: List<Int>): List<Int> {
+        if (games.size <= AppConfig.web.maxSteamGroups) {
+            return games
+        }
+
+        // If the number of maxSteamGroups is reduced, the selection of the user also shrinks
+        return games.subList(0, AppConfig.web.maxSteamGroups)
+    }
+
+    /**
+     * Sets a number of games as default and saves them to the database.
+     * The number of default games is equal to or smaller than the limit.
+     */
+    public fun setDefaultGames(uniqueId: String, steamId: String) {
+        // Getting the owned games via the Steam API
+        val ownedGames = getOwnedGames(steamId)
+        val ownedIds = ownedGames.map { game -> game.appid }
+
+        val iconsAvailable = SteamConnector.list()
+        val gamesAvailable = iconsAvailable.keys.filter { gameId -> ownedIds.contains(gameId) }
+
+        // If the user has selected too many groups, we cut his groups down to the limit
+        val diffCount = gamesAvailable.size - AppConfig.web.maxSteamGroups
+        val selectedGames = if (diffCount > 0) {
+            gamesAvailable.dropLast(diffCount)
+        } else {
+            gamesAvailable
+        }
+
+        saveSelectedGames(uniqueId, selectedGames)
     }
 
     /**

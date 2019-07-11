@@ -1,6 +1,7 @@
 package de.anura.bot.web.handlers
 
 import de.anura.bot.database.Database
+import de.anura.bot.teamspeak.SelectedGames
 import de.anura.bot.teamspeak.SteamConnector
 import de.anura.bot.web.AbstractRequestHandler
 import de.anura.bot.web.NettyWebService.RequestInfo
@@ -84,6 +85,8 @@ class ConnectRequestHandler(requestInfo: RequestInfo) : AbstractRequestHandler(r
 
         // Only updating the games if the steam_id has changed
         if (rowChanges > 0) {
+            // Setting the default games
+            SelectedGames.setDefaultGames(uniqueId, steamid)
             // Updating the groups on the Teamspeak
             SteamConnector.setGroups(uniqueId)
         }
