@@ -15,7 +15,7 @@ abstract class AbstractRequestHandler(requestInfo: RequestInfo) {
     private val tokens: TokenManager = requestInfo.tokens
 
     protected fun verifyToken(): String {
-        val token = request.query("token") ?: throw WebException(0x100, "Can't find toke in request query!")
+        val token = request.query("token") ?: throw WebException(0x100, "Can't find token in request query!")
         val uniqueId = tokens.destroyToken(token)
                 ?: throw WebException(0x101, "Can't get the uniqueId while destroying")
 
