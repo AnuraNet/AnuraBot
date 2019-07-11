@@ -120,22 +120,48 @@ class SelectRequestHandler(requestInfo: NettyWebService.RequestInfo) : AbstractR
         val availableIcons = SteamConnector.list().keys
         val selectedGames = SelectedGames.querySelectedGames(uniqueId)
 
-        return SteamAPI.getOwnedGames(steamId)
+        val ownedGames = SteamAPI.getOwnedGames(steamId)
+
+        if (ownedGames.isEmpty()) {
+            // The user hasn't bought any games on his Steam account or maybe the privacy settings are active
+
+            //language=html
+            return """
+            <div class='box-divider'>
+                Sorry, but we can't find any games on your Steam account. <br>
+                Maybe you have to change your <a href='https://steamcommunity.com/my/edit/settings'>privacy settings</a>.
+            </div>
+            """.trimIndent()
+        }
+
+        val availableGames = ownedGames
                 .filter { game -> availableIcons.contains(game.appid) }
                 .sortedBy { game -> game.name }
-                .joinToString(separator = "\n") { game ->
 
-                    val elementId = "game-${game.appid}"
-                    val checkedText = if (selectedGames.contains(game.appid)) "checked" else ""
+        if (availableGames.isEmpty()) {
+            // The user can't select any games, but he has some on his Steam account
 
-                    //language=html
-                    """
-                    <div class='box-divider'>
-                        <input type='checkbox' id='$elementId' name='game' value='$elementId' $checkedText>
-                        <label for='$elementId'>${game.name}</label>
-                    </div>
-                    """.trimIndent()
-                }
+            //language=html
+            return """
+            <div class='box-divider'>
+                Sorry, but none of the games you bought on Steam are available as a TeamSpeak group.
+            </div>
+            """.trimIndent()
+        }
+
+        return availableGames.joinToString(separator = "\n") { game ->
+
+            val elementId = "game-${game.appid}"
+            val checkedText = if (selectedGames.contains(game.appid)) "checked" else ""
+
+            //language=html
+            """
+            <div class='box-divider'>
+                <input type='checkbox' id='$elementId' name='game' value='$elementId' $checkedText>
+                <label for='$elementId'>${game.name}</label>
+            </div>
+            """.trimIndent()
+        }
     }
 
     private fun appendSaveResult(): String {
