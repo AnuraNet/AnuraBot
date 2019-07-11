@@ -1,6 +1,7 @@
 package de.anura.bot.teamspeak
 
 import com.github.theholywaffle.teamspeak3.api.event.ClientJoinEvent
+import com.github.theholywaffle.teamspeak3.api.exception.TS3CommandFailedException
 import de.anura.bot.database.Database
 import org.jdbi.v3.core.kotlin.useHandleUnchecked
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
@@ -143,21 +144,29 @@ object SteamConnector {
             listOf()
         }
 
-        // All groups the user should have
-        val correctGroups = selectedGames.mapNotNull { icons[it.appid] }
-        // All groups (include non-game) groups the user have
-        val serverGroups = ts.getClientByUId(uniqueId).serverGroups
+        try {
 
-        // Adding the missing groups for games to the user
-        correctGroups
-                .filter { !serverGroups.contains(it) }
-                .forEach { ts.addClientToServerGroup(it, databaseId) }
+            // All groups the user should have
+            val correctGroups = selectedGames.mapNotNull { icons[it.appid] }
+            // All groups (include non-game) groups the user has
+            val serverGroups = ts.getClientByUId(uniqueId).serverGroups
 
-        // Removing the invalid groups from the user
-        serverGroups
-                .filter { icons.containsValue(it) }
-                .filter { !correctGroups.contains(it) }
-                .forEach { ts.removeClientFromServerGroup(it, databaseId) }
+            // Adding the missing groups for games to the user
+            correctGroups
+                    .filter { !serverGroups.contains(it) }
+                    .forEach { ts.addClientToServerGroup(it, databaseId) }
+
+            // Removing the invalid groups from the user
+            serverGroups
+                    .filter { icons.containsValue(it) }
+                    .filter { !correctGroups.contains(it) }
+                    .forEach { ts.removeClientFromServerGroup(it, databaseId) }
+
+        } catch (ex: TS3CommandFailedException) {
+            // Catches a TS3 Exception, preventing a crash of the bot
+            LoggerFactory.getLogger(javaClass).warn("Couldn't set server groups for user {}", uniqueId, ex)
+            return
+        }
     }
 
     fun setAllClientsGroups() {
