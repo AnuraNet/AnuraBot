@@ -103,7 +103,19 @@ class NettyWebService(private val config: WebConfig) : WebService {
                 else -> defaultHandler.mainPage()
             }
         } catch (ex: WebException) {
-            logger.error("Error ({}) while serving route: {}", ex.code, request.uri.path, ex)
+            var logBuilder = logger.atError()
+                    .addArgument(ex.code.toString(16))
+                    .addArgument(request.uri.path)
+
+            if (ex.code == 0x101) {
+                // Don't print the full stacktrace, when someone uses an old link
+                // (0x101 => Can't get the uniqueId while destroying)
+            } else {
+                logBuilder = logBuilder.addArgument(ex)
+            }
+
+            logBuilder.log("Error (0x{}) while serving route: {}")
+
             defaultHandler.handleError(ex)
         }
 
