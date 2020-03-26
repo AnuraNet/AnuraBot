@@ -1,11 +1,13 @@
 package de.anura.bot.teamspeak.commands
 
+import de.anura.bot.teamspeak.UserInfo
+
 class CommandHandler {
 
     private val commands = listOf(Games(), Time(), TimeGroupCmd(), Perms(), Users())
     private val help by lazy { buildHelp() }
 
-    fun handle(text: String): String {
+    fun handle(text: String, userInfo: UserInfo): String {
         // Splitting the text of the message
         val array = text.split(' ')
         val commandName = array[0]
@@ -19,7 +21,7 @@ class CommandHandler {
         val command = commands.find { command -> command.name.equals(commandName, true) } ?:
                 return "Sorry I couldn't find a command with this name );\n $help"
 
-        return command.handle(array.subList(1, array.size))
+        return command.handle(userInfo, array.subList(1, array.size))
     }
 
     private fun buildHelp(): String {

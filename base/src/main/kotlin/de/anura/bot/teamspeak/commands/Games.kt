@@ -2,6 +2,7 @@ package de.anura.bot.teamspeak.commands
 
 import de.anura.bot.teamspeak.SteamConnector
 import de.anura.bot.teamspeak.TsBot
+import de.anura.bot.teamspeak.UserInfo
 
 @CommandName("games")
 @CommandHelp("Edit the icons for Steam games")
@@ -23,10 +24,10 @@ class Games : Command() {
     }
 
     @CommandHelp("Lists all associations")
-    fun list(): String {
+    fun list(userInfo: UserInfo): String {
         val all = SteamConnector.list().entries
                 .joinToString(separator = "\n") {
-                    "[url=https://steamdb.info/app/${it.key}/]${it.key}[/url]  - ${it.value}"
+                    userInfo.link(it.key.toString(), "https://steamdb.info/app/${it.key}/") + it.value
                 }
 
         return "The following associations were found: \nFormat: Steam Game Id - Teamspeak Icon Id \n$all"

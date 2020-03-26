@@ -28,7 +28,7 @@ class TimeGroupCmd : Command() {
         // Fetches Teamspeak Groups
         val tsGroups = ts.serverGroups.associateBy { it.id }
 
-        // Convertes all to a String
+        // Converts all time groups to a single string
         val list = groups.list()
                 .joinToString(separator = "\n") {
                     val name = tsGroups[it.tsGroup]?.name ?: " --- "
