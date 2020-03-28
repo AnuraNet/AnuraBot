@@ -18,7 +18,8 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     private val clients = mutableMapOf<Int, TeamspeakClient>()
 
     fun populateCache(client: Client) {
-        clients[client.id] = TeamspeakClient(client.id, client.uniqueIdentifier, client.channelId, findTsVersion(client))
+        clients[client.id] = TeamspeakClient(client.id, client.uniqueIdentifier, client.channelId,
+                findTsVersion(client.version))
     }
 
     fun clearCache() {
@@ -123,8 +124,8 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     override fun onClientJoin(ev: ClientJoinEvent) {
         asyncApi.getClientInfo(ev.clientId).onSuccess { info ->
 
-            // TODO: Get client version somehow and don't use a default value
-            clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, info.channelId, 3)
+            clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, info.channelId,
+                    findTsVersion(info.version))
 
             steam.setGroups(ev)
             TimeManager.load(ev.uniqueClientIdentifier)
@@ -153,11 +154,11 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
 
     }
 
-    private fun findTsVersion(client: Client): Int {
-        // The client_version property can be "3.5.1", "5.0.0-beta.24" or "ServerQuery"
+    private fun findTsVersion(version: String): Int {
+        // The client_version property has the format of "3.5.1", "5.0.0-beta.24" or "ServerQuery"
         return when {
-            client.version.startsWith("3") -> 3
-            client.version.startsWith("5") -> 5
+            version.startsWith("3") -> 3
+            version.startsWith("5") -> 5
             else -> 1
         }
     }
