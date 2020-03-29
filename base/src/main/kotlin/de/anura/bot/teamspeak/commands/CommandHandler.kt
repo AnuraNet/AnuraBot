@@ -5,7 +5,6 @@ import de.anura.bot.teamspeak.UserInfo
 class CommandHandler {
 
     private val commands = listOf(Games(), Time(), TimeGroupCmd(), Perms(), Users())
-    private val help by lazy { buildHelp() }
 
     fun handle(text: String, userInfo: UserInfo): String {
         // Splitting the text of the message
@@ -14,20 +13,19 @@ class CommandHandler {
 
         // When the user wants help, he gets help
         if (commandName.equals("help", true)) {
-            return help
+            return buildHelp(userInfo)
         }
 
         // Searching for the command, if we can't find it there will be a help message for the user
-        val command = commands.find { command -> command.name.equals(commandName, true) } ?:
-                return "Sorry I couldn't find a command with this name );\n $help"
+        val command = commands.find { command -> command.name.equals(commandName, true) } ?: return "Sorry I couldn't find a command with this name );\n${buildHelp(userInfo)}"
 
         return command.handle(userInfo, array.subList(1, array.size))
     }
 
-    private fun buildHelp(): String {
+    private fun buildHelp(userInfo: UserInfo): String {
         // The space is needed for trimIndent to work
         val commandList = commands.joinToString(separator = "\n            ") {
-            "[b]${it.name}[/b] - ${it.help}"
+            userInfo.bold(it.name) + " - ${it.help}"
         }
 
         return """

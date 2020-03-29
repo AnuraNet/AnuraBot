@@ -13,7 +13,7 @@ class TimeGroupCmd : Command() {
     private val ts = TsBot.api
     private val groups = TimeGroups
 
-    @CommandHelp("Adds a new time group. [Time] in seconds")
+    @CommandHelp("Adds a new time group ([time] in seconds)")
     fun add(tsGroup: Int, time: Long): String {
         try {
             groups.add(tsGroup, Duration.ofSeconds(time), true)
@@ -36,7 +36,11 @@ class TimeGroupCmd : Command() {
                     "$name (${it.tsGroup}) - $hours h"
                 }
 
-        return "Following time groups exists: \n$list"
+        if (list.isEmpty()) {
+            return "There are no time groups registered."
+        } else {
+            return "Here are all registered time groups: \n$list"
+        }
     }
 
     @CommandHelp("Removes a time group")

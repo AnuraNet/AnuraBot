@@ -41,7 +41,7 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
                 val disconnected = SteamConnector.disconnect(ev.invokerUniqueId)
 
                 val answerMessage = if (disconnected) {
-                    "Your Steam account has been disconnected"
+                    "The connection to your Steam account has been removed"
                 } else {
                     "A Steam account isn't connected to this Teamspeak identity"
                 }
@@ -51,7 +51,7 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
             }
 
             if (!Permissions.has(ev.invokerUniqueId)) {
-                asyncApi.sendPrivateMessage(ev.invokerId, "You don't have the permission to use commands!")
+                asyncApi.sendPrivateMessage(ev.invokerId, "Sorry, but you aren't allowed to use commands!")
                 return
             }
 
@@ -94,15 +94,15 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
             val message = if (SteamConnector.isConnected(client.uniqueId)) {
                 """
                 Hey,
-                you're ${info.bold("already connected")} with a Steam account.
+                you're ${info.bold("already connected")} to a Steam account.
 
                 To ${info.bold("connect")} your Teamspeak identity with a
                 new Steam account click on ${info.link("this link", loginUrl)} and follow the instructions.
 
-                To ${info.bold("change the game icon")} which are shown on Teamspeak
+                If you want to ${info.bold("change the game icons")} which are shown on Teamspeak,
                 click on ${info.link("this link", gamesUrl)} and follow the instructions.
 
-                To ${info.bold("disconnect")} your Steam account
+                If you want to ${info.bold("disconnect")} your Steam account,
                 send this bot a message with the content ${info.bold("disconnect")}.
                 """.trimIndent()
             } else {

@@ -128,7 +128,7 @@ class SelectRequestHandler(requestInfo: NettyWebService.RequestInfo) : AbstractR
             //language=html
             return """
             <div class='box-divider'>
-                Sorry, but we can't find any games on your Steam account. <br>
+                Sorry, but we couldn't find any games on your Steam account. <br>
                 Maybe you have to change your <a href='https://steamcommunity.com/my/edit/settings'>privacy settings</a>.
             </div>
             """.trimIndent()

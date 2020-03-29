@@ -27,10 +27,10 @@ class Games : Command() {
     fun list(userInfo: UserInfo): String {
         val all = SteamConnector.list().entries
                 .joinToString(separator = "\n") {
-                    userInfo.link(it.key.toString(), "https://steamdb.info/app/${it.key}/") + it.value
+                    userInfo.link(it.key.toString(), "https://steamdb.info/app/${it.key}/") + " - ${it.value}"
                 }
 
-        return "The following associations were found: \nFormat: Steam Game Id - Teamspeak Icon Id \n$all"
+        return "The following associations were found: \nFormat: Steam Game - Teamspeak Group \n$all"
     }
 
     @CommandHelp("Removes a association")

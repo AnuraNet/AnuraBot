@@ -10,17 +10,17 @@ class Perms : Command() {
     private val perms = Permissions
     private val ts = TsBot.api
 
-    @CommandHelp("Allow a user to interact with the bot")
+    @CommandHelp("Allows a user to change the bots settings")
     fun add(uniqueId: String): String {
         if (perms.has(uniqueId)) {
-            return "The user has already the permission"
+            return "The user has already permissions"
         }
 
         val client = ts.getDatabaseClientByUId(uniqueId)
-                ?: return "A user with the unique id $uniqueId never visted this Teamspeak!"
+                ?: return "A user with the unique id $uniqueId never visited this Teamspeak!"
 
         perms.add(uniqueId)
-        return "Given the permission to ${client.nickname}"
+        return "Given permission to ${client.nickname}"
     }
 
     @CommandHelp("List all users with the permission")
@@ -32,7 +32,7 @@ class Perms : Command() {
         return "All users with permission: \n$clients"
     }
 
-    @CommandHelp("Disallow a user to interact with the bot")
+    @CommandHelp("Takes away a users right to edit the settings")
     fun remove(uniqueId: String): String {
 
         perms.remove(uniqueId)
