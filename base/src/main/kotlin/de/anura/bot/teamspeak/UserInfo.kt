@@ -1,8 +1,9 @@
 package de.anura.bot.teamspeak
 
+import com.github.theholywaffle.teamspeak3.api.PermissionGroupType
 import java.net.URLEncoder
 
-class UserInfo(private val ts5: Boolean) {
+class UserInfo(val ts5: Boolean, val databaseId: Int) {
 
     // Teamspeak 3 format: https://www.teamspeak-info.de/ts_bb_codes.htm
     // Teamspeak 5 format: https://ts-n.net/index.php?artid=97
@@ -69,5 +70,59 @@ class UserInfo(private val ts5: Boolean) {
         return link(name, "client://$clientId/$uniqueId~$encodedName");
     }
 
+    /**
+     * Runs [canAddGroup] and sends messages if it's not allowed
+     */
+    fun canAddGroupWithMessages(groupId: Int, allowed: () -> String): String {
+        when (canAddGroup(groupId)) {
+            AddGroupPermission.NO_PERMISSION ->
+                return "There's an error, the id for the permission 'i_group_member_add_power' couldn't be found."
+            AddGroupPermission.NO_GROUP ->
+                return "There's no teamspeak server group with the id $groupId"
+            AddGroupPermission.FORBIDDEN ->
+                return "Your 'i_group_member_add_power' permission is lower than the groups 'i_group_needed_member_add_power'.\n" +
+                        "You aren't allowed to add users to this group."
+            AddGroupPermission.ALLOWED ->
+                return allowed.invoke()
+        }
+    }
 
+    /**
+     * Checks whether this user has teamspeak permissions to add users to the group [groupId]
+     */
+    fun canAddGroup(groupId: Int): AddGroupPermission {
+        val permAddPower = "i_group_member_add_power";
+        val permAddNeeded = "i_group_needed_member_add_power";
+        val tsApi = TsBot.api
+
+        val permAddPowerId = tsApi.permissions.find { it.name == permAddPower }?.id
+                ?: return AddGroupPermission.NO_PERMISSION
+
+        if (!tsApi.serverGroups.any { it.id == groupId }) {
+            return AddGroupPermission.NO_GROUP
+        }
+
+        val serverGroup = tsApi.getServerGroupPermissions(groupId)
+        val permission = serverGroup.find { it.name == permAddNeeded }
+        val minimumPower = permission?.value ?: 0
+
+        // Getting the permission of the user and we don't care about the channel
+        val userPermissions = tsApi.getPermissionOverview(0, databaseId) ?: return AddGroupPermission.FORBIDDEN
+        val userAddPower = userPermissions.find {
+            it.type == PermissionGroupType.SERVER_GROUP && it.id == permAddPowerId
+        }?.value ?: return AddGroupPermission.FORBIDDEN
+
+        return if (userAddPower >= minimumPower) {
+            AddGroupPermission.ALLOWED
+        } else {
+            AddGroupPermission.FORBIDDEN
+        }
+    }
+
+    enum class AddGroupPermission {
+        NO_GROUP,
+        NO_PERMISSION,
+        FORBIDDEN,
+        ALLOWED
+    }
 }

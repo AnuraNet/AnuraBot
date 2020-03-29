@@ -12,15 +12,11 @@ class Games : Command() {
     private val ts = TsBot.api
 
     @CommandHelp("Associates a Steam game with a Teamspeak group")
-    fun add(gameId: Int, groupId: Int): String {
-        val anyGroup = ts.serverGroups.any { it.id == groupId }
-
-        if (!anyGroup) {
-            return "There's no group with the id $groupId"
+    fun add(gameId: Int, groupId: Int, userInfo: UserInfo): String {
+        return userInfo.canAddGroupWithMessages(groupId) {
+            steam.addIcon(gameId, groupId)
+            return@canAddGroupWithMessages "Associated the game $gameId with the teamspeak group $groupId"
         }
-
-        steam.addIcon(gameId, groupId)
-        return "Associated the game $gameId with the $groupId"
     }
 
     @CommandHelp("Lists all associations")

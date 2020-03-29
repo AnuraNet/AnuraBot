@@ -18,8 +18,8 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     private val clients = mutableMapOf<Int, TeamspeakClient>()
 
     fun populateCache(client: Client) {
-        clients[client.id] = TeamspeakClient(client.id, client.uniqueIdentifier, client.channelId,
-                findTsVersion(client.version))
+        clients[client.id] = TeamspeakClient(client.id, client.databaseId, client.uniqueIdentifier,
+                client.channelId, findTsVersion(client.version))
     }
 
     fun clearCache() {
@@ -124,8 +124,8 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     override fun onClientJoin(ev: ClientJoinEvent) {
         asyncApi.getClientInfo(ev.clientId).onSuccess { info ->
 
-            clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.uniqueClientIdentifier, info.channelId,
-                    findTsVersion(info.version))
+            clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.clientDatabaseId, ev.uniqueClientIdentifier,
+                    info.channelId, findTsVersion(info.version))
 
             steam.setGroups(ev)
             TimeManager.load(ev.uniqueClientIdentifier)
@@ -163,7 +163,7 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
         }
     }
 
-    data class TeamspeakClient(var clientId: Int, val uniqueId: String, var channelId: Int, val tsVersion: Int) {
+    data class TeamspeakClient(var clientId: Int, val databaseId: Int, val uniqueId: String, var channelId: Int, val tsVersion: Int) {
         fun isServerQuery(): Boolean {
             return tsVersion == 1;
         }
@@ -173,7 +173,7 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
         }
 
         fun toUserInfo(): UserInfo {
-            return UserInfo(isTeamspeak5());
+            return UserInfo(isTeamspeak5(), databaseId);
         }
 
     }

@@ -2,6 +2,7 @@ package de.anura.bot.teamspeak.commands
 
 import de.anura.bot.teamspeak.TimeGroups
 import de.anura.bot.teamspeak.TsBot
+import de.anura.bot.teamspeak.UserInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration
@@ -14,13 +15,16 @@ class TimeGroupCmd : Command() {
     private val groups = TimeGroups
 
     @CommandHelp("Adds a new time group ([time] in seconds)")
-    fun add(tsGroup: Int, time: Long): String {
-        try {
-            groups.add(tsGroup, Duration.ofSeconds(time), true)
-        } catch (ex: IllegalStateException) {
-            return "There's already an group with the same time!"
+    fun add(tsGroup: Int, time: Long, userInfo: UserInfo): String {
+        return userInfo.canAddGroupWithMessages(tsGroup) {
+            try {
+                groups.add(tsGroup, Duration.ofSeconds(time), true)
+            } catch (ex: IllegalStateException) {
+                return@canAddGroupWithMessages "There's already an group with the same time!"
+            }
+
+            return@canAddGroupWithMessages "A new time group was added!"
         }
-        return "A new time group was added!"
     }
 
     @CommandHelp("Lists all time groups")
