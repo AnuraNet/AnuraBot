@@ -12,8 +12,12 @@ import de.anura.bot.web.SteamHttpException
 import de.anura.bot.web.WebServiceLoader
 import org.jdbi.v3.core.ConnectionException
 import org.slf4j.LoggerFactory
+import kotlin.system.exitProcess
 
-fun main(args: Array<String>) {
+// Hey if you're new to Kotlin, here's a guide how to do things in Kotlin:
+// https://kotlinlang.org/docs/reference/idioms.html
+
+fun main() {
 
     val logger = LoggerFactory.getLogger("de.anura.bot.BotStartupKt")
 
@@ -57,13 +61,12 @@ fun main(args: Array<String>) {
     val web = try {
         WebServiceLoader.service
     } catch (ex: ClassNotFoundException) {
-        System.exit(1)
-        null
+        exitProcess(1)
     }
 
     Runtime.getRuntime().addShutdownHook(Thread {
         Scheduler.stop()
-        web?.stop()
+        web.stop()
         tsbot.disconnect()
     })
 

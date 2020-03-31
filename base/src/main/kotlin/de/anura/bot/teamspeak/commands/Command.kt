@@ -1,18 +1,19 @@
 package de.anura.bot.teamspeak.commands
 
+import de.anura.bot.teamspeak.UserInfo
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.full.cast
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredFunctions
 
 abstract class Command {
 
     val name: String by lazy { classAnnotation(CommandName::class).name }
     val help: String by lazy { classAnnotation(CommandHelp::class).help }
-    private val subs: Map<String, SubCommand> by lazy { listSubs() }
-    private val compiledHelp by lazy { generateHelp() }
+    private val subCommands: Map<String, SubCommand> by lazy { searchSubCommands() }
 
     @Suppress("UNCHECKED_CAST")
     private fun <A : Annotation> classAnnotation(clazz: KClass<A>): A {
@@ -27,7 +28,9 @@ abstract class Command {
         return matching[0]
     }
 
-    private fun listSubs(): Map<String, SubCommand> {
+    private fun searchSubCommands(): Map<String, SubCommand> {
+        val userInfoKType = UserInfo::class.createType()
+
         return this::class.declaredFunctions
                 // Trying to find the CommandHelp annotation
                 .map { function ->
@@ -43,11 +46,13 @@ abstract class Command {
                 // Adding the arguments and transforming the annotation into a sub command
                 .map { pair ->
                     val help = (pair.second as CommandHelp).help
-                    val arguments = pair.first.parameters
+                    val allArguments = pair.first.parameters
                             .filter { it.kind == KParameter.Kind.VALUE }
                             .map { Argument(it.name ?: "", it.type) }
 
-                    SubCommand(pair.first, pair.first.name, help, arguments)
+                    val userArguments = allArguments.filter { it.type != userInfoKType }
+
+                    SubCommand(pair.first, pair.first.name, help, allArguments, userArguments)
                 }
                 // Mapping it with the name as key
                 .associateBy { it.name.toLowerCase() }
@@ -56,23 +61,23 @@ abstract class Command {
     /**
      * Generates a help message for a sub command
      */
-    private fun generateSubHelp(cmd: SubCommand): String {
+    private fun generateSubHelp(cmd: SubCommand, userInfo: UserInfo): String {
 
-        val arguments = if (cmd.arguments.isNotEmpty())
-            cmd.arguments.joinToString(separator = " ", postfix = " ") { "<${it.name}>" }
+        val arguments = if (cmd.userArguments.isNotEmpty())
+            cmd.userArguments.joinToString(separator = " ", postfix = " ") { "<${it.name}>" }
         else
             ""
 
-        return "${cmd.name} $arguments- ${cmd.help}"
+        return userInfo.code("${cmd.name} $arguments") + " - ${cmd.help}"
     }
 
     /**
      * Generates a help message for the whole command (including all sub commands)
      */
-    private fun generateHelp(): String {
+    private fun generateHelp(userInfo: UserInfo): String {
         // Generating a list of a sub commands with their arguments and their description
         // The space is needed for trimIndent()
-        val subCommands = subs.values.joinToString(separator = "\n            ") { generateSubHelp(it) }
+        val subCommands = subCommands.values.joinToString(separator = "\n            ") { generateSubHelp(it, userInfo) }
 
         return """
             $name
@@ -84,28 +89,37 @@ abstract class Command {
     }
 
 
-    fun handle(arguments: List<String>): String {
+    fun handle(userInfo: UserInfo, arguments: List<String>): String {
 
         // No sub command is specified => Help
         if (arguments.isEmpty()) {
-            return compiledHelp
+            return generateHelp(userInfo)
         }
 
         // Trying to find the sub command, if not => Help
-        val command = subs[arguments[0].toLowerCase()] ?: return compiledHelp
+        val command = subCommands[arguments[0].toLowerCase()] ?: return generateHelp(userInfo)
 
         // If there are too few arguments => Help
-        if (command.arguments.size > arguments.size - 1) {
-            return "Wrong parameters: $name ${generateSubHelp(command)}"
+        if (command.userArguments.size > arguments.size - 1) {
+            return "Wrong parameters: $name ${generateSubHelp(command, userInfo)}"
         }
 
+        // Keeping track of the correct index for the userArguments
+        var userArgumentIndex = 1
+
         // Converting the string arguments to the right data type
-        val typedArguments = command.arguments.mapIndexedNotNull { index, required ->
+        val typedArguments = command.allArguments.mapIndexedNotNull { _, required ->
             // The class of the parameter for the method
             val classifier = required.type.classifier ?: return@mapIndexedNotNull null
+
+            // This command wants information about the user
+            if (classifier == UserInfo::class) {
+                return@mapIndexedNotNull userInfo
+            }
+
             // The string which has to be transformed
             // We add one to the index because we don't want the sub command name
-            val given = arguments[index + 1]
+            val given = arguments[userArgumentIndex++]
 
             val any: Any = when (classifier) {
                 Int::class -> given.toIntOrNull()
@@ -131,7 +145,8 @@ abstract class Command {
         return call as? String ?: "Success: $call"
     }
 
-    data class SubCommand(val function: KFunction<*>, val name: String, val help: String, val arguments: List<Argument>)
+    data class SubCommand(val function: KFunction<*>, val name: String, val help: String,
+                          val allArguments: List<Argument>, val userArguments: List<Argument>)
 
     data class Argument(val name: String, val type: KType)
 

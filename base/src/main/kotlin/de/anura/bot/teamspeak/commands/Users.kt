@@ -3,6 +3,7 @@ package de.anura.bot.teamspeak.commands
 import com.github.theholywaffle.teamspeak3.TS3Api
 import de.anura.bot.database.Database
 import de.anura.bot.teamspeak.TsBot
+import de.anura.bot.teamspeak.UserInfo
 import org.jdbi.v3.core.kotlin.withHandleUnchecked
 
 @CommandName("users")
@@ -12,7 +13,7 @@ class Users : Command() {
     private val ts: TS3Api = TsBot.api
 
     @CommandHelp("List of all users who connected with Steam")
-    fun listConnected(): String {
+    fun listConnected(userInfo: UserInfo): String {
 
         // Getting all users who connected their Steam account from the database
         val users = Database.get().withHandleUnchecked {
@@ -24,7 +25,7 @@ class Users : Command() {
         val userStrings = mutableListOf<String>()
 
         // Getting their names from the Teamspeak database & printing it
-        users.forEach { uid, steamId ->
+        users.forEach { (uid, steamId) ->
             val client = ts.getDatabaseClientByUId(uid)
 
             // Getting the user's name
@@ -34,7 +35,8 @@ class Users : Command() {
                 "Not in the Teamspeak database (UID: $uid)"
             }
 
-            userStrings.add("$name - [url=https://steamcommunity.com/profiles/$steamId]${steamId}[/url]")
+            val link = userInfo.link(steamId.toString(), "https://steamcommunity.com/profiles/$steamId")
+            userStrings.add("$name - $link")
         }
 
         // Returing the strings with the users
