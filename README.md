@@ -1,7 +1,8 @@
 # AnuraBot
 The Teamspeak Bot for the Anura network. 
-It can give users of your Teamspeak who visited it for certain amount of time a special rank 
-and groups for games they own on Steam.
+It assigns users of your Teamspeak server groups for their online time and also groups for their games on Steam.
+
+This bot supports Teamspeak clients using version 3 and also clients using version 5.
 
 ![Cards Icon](icon/cards@0.5.png) 
 
