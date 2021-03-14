@@ -44,8 +44,8 @@ object TimeGroups {
 
         // Getting the group which had the user before the new group
         val oldGroup = groups.values
-                .filter { otherGroup -> otherGroup.time < group.time }
-                .minBy { otherGroup -> group.time - otherGroup.time }
+            .filter { otherGroup -> otherGroup.time < group.time }
+            .minByOrNull { otherGroup -> group.time - otherGroup.time }
 
         val clientInfo = ts.getClientByUId(uid)
         val databaseId = clientInfo.databaseId
@@ -92,7 +92,7 @@ object TimeGroups {
         // Selecting with smalltest positive time difference => Searching for the correct group
         val correctGroup = groups.values
                 .filter { !(time - it.time).isNegative }
-                .minBy { time - it.time } ?: return
+                .minByOrNull { time - it.time } ?: return
 
         // Removing the user from the wrong groups
         timeGroups
@@ -132,9 +132,9 @@ object TimeGroups {
         if (addClients) {
             // Getting the next group with a little higher time requirement
             val nextGroupTime: Duration = groups.values
-                    .filter { it.time > time }
-                    .minBy { it.time.minus(time) }
-                    ?.time ?: Duration.ofSeconds(Long.MAX_VALUE)
+                .filter { it.time > time }
+                .minByOrNull { it.time.minus(time) }
+                ?.time ?: Duration.ofSeconds(Long.MAX_VALUE)
 
             // Adding all online clients with enough and not too much time to this group
             ts.clients

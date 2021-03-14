@@ -17,7 +17,7 @@ object SelectedGames {
      * Queries the database for the games which a user has selected.
      * @return A list of the steam appids of the selected games
      */
-    public fun querySelectedGames(uniqueId: String): List<Int> {
+    fun querySelectedGames(uniqueId: String): List<Int> {
         return Database.get().withHandleUnchecked {
             it.select("SELECT game_id FROM selected_game " +
                     "WHERE user_id = (SELECT id FROM ts_user WHERE uid = ?)",
@@ -45,7 +45,7 @@ object SelectedGames {
      *
      * @return A list of [SteamGame] objects which the user wants to be shown
      */
-    public fun queryAndUpdateGames(uniqueId: String, steamId: String): List<SteamGame> {
+    fun queryAndUpdateGames(uniqueId: String, steamId: String): List<SteamGame> {
         // Getting the owned games via the Steam API
         val ownedGames = getOwnedGames(steamId)
         val ownedIds = ownedGames.map { game -> game.appid }
@@ -86,7 +86,7 @@ object SelectedGames {
      * Sets a number of games as default and saves them to the database.
      * The number of default games is equal to or smaller than the limit.
      */
-    public fun setDefaultGames(uniqueId: String, steamId: String) {
+    fun setDefaultGames(uniqueId: String, steamId: String) {
         // Getting the owned games via the Steam API
         val ownedGames = getOwnedGames(steamId)
         val ownedIds = ownedGames.map { game -> game.appid }
@@ -109,7 +109,7 @@ object SelectedGames {
      * Saves the selection of the user to the database.
      * To clear the selection just pass [emptyList] as [games]
      */
-    public fun saveSelectedGames(uniqueId: String, games: List<Int>) {
+    fun saveSelectedGames(uniqueId: String, games: List<Int>) {
         Database.get().useHandleUnchecked {
             val optionalId = it.select("SELECT id FROM ts_user WHERE uid = ?", uniqueId)
                     .mapTo(Int::class.java)

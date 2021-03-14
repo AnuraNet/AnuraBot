@@ -24,7 +24,7 @@ class TokenManager {
         val token = generateToken(uniqueId, tag)
         tokens[token.token] = token
 
-        // Returing the token string
+        // Returning the token string
         return token.token
     }
 
@@ -38,7 +38,7 @@ class TokenManager {
         // Removing the token from the cache
         tokens.remove(foundToken.token)
 
-        // Returing its unique id
+        // Returning its unique id
         return foundToken.uniqueId
     }
 
@@ -55,12 +55,12 @@ class TokenManager {
             return null
         }
 
-        // Returing the valid token
+        // Returning the valid token
         return foundToken
     }
 
     private fun generateToken(uniqueId: String, tag: String): Token {
-        // Generating a random sequenze of strings
+        // Generating a random sequence of strings
         val tokenString = Random().ints(tokenLength.toLong(), 0, tokenChars.length)
                 .asSequence()
                 .map { tokenChars[it] }

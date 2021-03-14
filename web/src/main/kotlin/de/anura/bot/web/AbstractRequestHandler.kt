@@ -44,7 +44,7 @@ abstract class AbstractRequestHandler(requestInfo: RequestInfo) {
         return Response(Status.OK)
                 .body("""
                     <!DOCTYPE HTML>
-                    <html>
+                    <html lang='en'>
                     <head>
                        <meta charset='UTF-8'>
                        <title>Teamspeak Bot</title>

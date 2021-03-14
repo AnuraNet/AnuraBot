@@ -40,10 +40,10 @@ class TimeGroupCmd : Command() {
                     "$name (${it.tsGroup}) - $hours h"
                 }
 
-        if (list.isEmpty()) {
-            return "There are no time groups registered."
+        return if (list.isEmpty()) {
+            "There are no time groups registered."
         } else {
-            return "Here are all registered time groups: \n$list"
+            "Here are all registered time groups: \n$list"
         }
     }
 

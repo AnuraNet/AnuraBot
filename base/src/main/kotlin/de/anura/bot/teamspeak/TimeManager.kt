@@ -89,7 +89,7 @@ object TimeManager {
     fun saveAll(remove: Boolean) {
         Database.get().useHandleUnchecked {
             val batch = it.prepareBatch("UPDATE ts_user SET time = ? WHERE uid = ?")
-            clientTime.forEach { uid, time -> batch.add(time.seconds, uid) }
+            clientTime.forEach { (uid, time) -> batch.add(time.seconds, uid) }
             if (batch.size() > 0) {
                 batch.execute()
             }

@@ -17,7 +17,8 @@ class CommandHandler {
         }
 
         // Searching for the command, if we can't find it there will be a help message for the user
-        val command = commands.find { command -> command.name.equals(commandName, true) } ?: return "Sorry I couldn't find a command with this name );\n${buildHelp(userInfo)}"
+        val command = commands.find { command -> command.name.equals(commandName, true) }
+            ?: return "Sorry I couldn't find a command with this name );\n${buildHelp(userInfo)}"
 
         return command.handle(userInfo, array.subList(1, array.size))
     }

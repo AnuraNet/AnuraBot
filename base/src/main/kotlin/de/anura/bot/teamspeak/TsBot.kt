@@ -9,6 +9,7 @@ import com.github.theholywaffle.teamspeak3.api.reconnect.ConnectionHandler
 import com.github.theholywaffle.teamspeak3.api.reconnect.ReconnectStrategy
 import de.anura.bot.config.AppConfig
 import org.slf4j.LoggerFactory
+import kotlin.system.exitProcess
 
 object TsBot {
 
@@ -53,7 +54,7 @@ object TsBot {
                             "because the credentials were rejected", appConfig.virtualserver)
                     connected = false
                     if (firstJoin) {
-                        System.exit(1)
+                        exitProcess(1)
                     }
                     return
                 }
@@ -66,7 +67,7 @@ object TsBot {
                             "because there's no virtaul server with the id '{}'", appConfig.virtualserver)
                     connected = false
                     if (firstJoin) {
-                        System.exit(1)
+                        exitProcess(1)
                     }
                     return
                 }

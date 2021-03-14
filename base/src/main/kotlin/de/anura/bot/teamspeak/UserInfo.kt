@@ -3,7 +3,7 @@ package de.anura.bot.teamspeak
 import com.github.theholywaffle.teamspeak3.api.PermissionGroupType
 import java.net.URLEncoder
 
-class UserInfo(val ts5: Boolean, val databaseId: Int) {
+class UserInfo(private val ts5: Boolean, private val databaseId: Int) {
 
     // Teamspeak 3 format: https://www.teamspeak-info.de/ts_bb_codes.htm
     // Teamspeak 5 format: https://ts-n.net/index.php?artid=97
@@ -57,7 +57,7 @@ class UserInfo(val ts5: Boolean, val databaseId: Int) {
      * @param clientId - The client id of the user or if he's offline 0
      * @param uniqueId - The unique id of the user
      * @param name - The name of the user with which the link should be displayed
-     * @see http://yat.qa/ressourcen/definitionen-und-algorithmen/#int-links
+     * @see <a href="http://yat.qa/ressourcen/definitionen-und-algorithmen/#int-links">yat.qa</a>
      *
      */
     fun clientLink(clientId: Int, uniqueId: String, name: String): String {
@@ -67,32 +67,32 @@ class UserInfo(val ts5: Boolean, val databaseId: Int) {
 
         // Encoding only the name
         val encodedName = URLEncoder.encode(name, "UTF-8")
-        return link(name, "client://$clientId/$uniqueId~$encodedName");
+        return link(name, "client://$clientId/$uniqueId~$encodedName")
     }
 
     /**
      * Runs [canAddGroup] and sends messages if it's not allowed
      */
     fun canAddGroupWithMessages(groupId: Int, allowed: () -> String): String {
-        when (canAddGroup(groupId)) {
+        return when (canAddGroup(groupId)) {
             AddGroupPermission.NO_PERMISSION ->
-                return "There's an error, the id for the permission 'i_group_member_add_power' couldn't be found."
+                "There's an error, the id for the permission 'i_group_member_add_power' couldn't be found."
             AddGroupPermission.NO_GROUP ->
-                return "There's no teamspeak server group with the id $groupId"
+                "There's no teamspeak server group with the id $groupId"
             AddGroupPermission.FORBIDDEN ->
-                return "Your 'i_group_member_add_power' permission is lower than the groups 'i_group_needed_member_add_power'.\n" +
+                "Your 'i_group_member_add_power' permission is lower than the groups 'i_group_needed_member_add_power'.\n" +
                         "You aren't allowed to add users to this group."
             AddGroupPermission.ALLOWED ->
-                return allowed.invoke()
+                allowed.invoke()
         }
     }
 
     /**
      * Checks whether this user has teamspeak permissions to add users to the group [groupId]
      */
-    fun canAddGroup(groupId: Int): AddGroupPermission {
-        val permAddPower = "i_group_member_add_power";
-        val permAddNeeded = "i_group_needed_member_add_power";
+    private fun canAddGroup(groupId: Int): AddGroupPermission {
+        val permAddPower = "i_group_member_add_power"
+        val permAddNeeded = "i_group_needed_member_add_power"
         val tsApi = TsBot.api
 
         val permAddPowerId = tsApi.permissions.find { it.name == permAddPower }?.id

@@ -60,4 +60,11 @@ Our icon is a creation of Cody and published on [Material Design Icons](https://
 Thanks Cody!
 
 ## Contribute
-If something is wrong or missing feel free to open a issue or a pull request. 
+If something is wrong or missing feel free to open an issue, or a pull request. 
+
+### Updating dependencies
+
+To check if there are any dependency updates available run,
+```bash
+mvn versions:display-dependency-updates
+```

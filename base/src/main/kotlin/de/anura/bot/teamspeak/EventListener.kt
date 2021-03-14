@@ -165,15 +165,15 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
 
     data class TeamspeakClient(var clientId: Int, val databaseId: Int, val uniqueId: String, var channelId: Int, val tsVersion: Int) {
         fun isServerQuery(): Boolean {
-            return tsVersion == 1;
+            return tsVersion == 1
         }
 
-        fun isTeamspeak5(): Boolean {
-            return tsVersion == 5;
+        private fun isTeamspeak5(): Boolean {
+            return tsVersion == 5
         }
 
         fun toUserInfo(): UserInfo {
-            return UserInfo(isTeamspeak5(), databaseId);
+            return UserInfo(isTeamspeak5(), databaseId)
         }
 
     }

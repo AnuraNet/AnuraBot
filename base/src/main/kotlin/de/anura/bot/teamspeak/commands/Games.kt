@@ -1,7 +1,6 @@
 package de.anura.bot.teamspeak.commands
 
 import de.anura.bot.teamspeak.SteamConnector
-import de.anura.bot.teamspeak.TsBot
 import de.anura.bot.teamspeak.UserInfo
 
 @CommandName("games")
@@ -9,7 +8,6 @@ import de.anura.bot.teamspeak.UserInfo
 class Games : Command() {
 
     private val steam = SteamConnector
-    private val ts = TsBot.api
 
     @CommandHelp("Associates a Steam game with a Teamspeak group")
     fun add(gameId: Int, groupId: Int, userInfo: UserInfo): String {

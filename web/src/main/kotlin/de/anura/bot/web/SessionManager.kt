@@ -92,7 +92,7 @@ class SessionManager {
          * @throws WebException with the code [code], if there's no data for the [key]
          * @return The data for the [key]
          */
-        public fun getData(key: String, code: Int): String {
+        fun getData(key: String, code: Int): String {
             return this.data[key] ?: throw WebException(code, "There's no data for the key $key in this session")
         }
     }

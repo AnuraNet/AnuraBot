@@ -25,7 +25,7 @@ data class WebConfig(
         return proxyUri() ?: if (port == 80 || port == 443) host else "$host:$port"
     }
 
-    fun proxyUri(): String? {
+    private fun proxyUri(): String? {
         if (proxyUrl == null) {
             return null
         }

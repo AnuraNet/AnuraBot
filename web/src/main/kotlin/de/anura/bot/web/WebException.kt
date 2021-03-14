@@ -5,7 +5,7 @@ package de.anura.bot.web
  */
 class WebException : Exception {
 
-    public val code: Int
+    val code: Int
 
     constructor(code: Int, message: String) : super(message) {
         this.code = code

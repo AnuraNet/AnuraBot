@@ -35,8 +35,8 @@ abstract class Command {
                 // Trying to find the CommandHelp annotation
                 .map { function ->
                     val annotation = function.annotations
-                            .filter { annotation -> annotation is CommandHelp }
-                            .map { annotation -> annotation as CommandHelp }
+                            .filterIsInstance<CommandHelp>()
+                            .map { annotation -> annotation }
                             .firstOrNull()
 
                     Pair(function, annotation)
