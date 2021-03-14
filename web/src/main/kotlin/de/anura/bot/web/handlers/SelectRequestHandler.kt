@@ -48,6 +48,7 @@ class SelectRequestHandler(requestInfo: NettyWebService.RequestInfo) : AbstractR
             </script>
             <script src='/assets/js/selectgames.js'></script>
         """.trimIndent()
+
         @Language("HTML")
         val head = """
             <style>
@@ -107,7 +108,7 @@ class SelectRequestHandler(requestInfo: NettyWebService.RequestInfo) : AbstractR
         }
 
         val newSteamId = SteamConnector.getSteamId(uniqueId)
-                ?: throw WebException(0x702, "The Steam api won't return the id for the user $uniqueId")
+            ?: throw WebException(0x702, "The Steam api won't return the id for the user $uniqueId")
 
         session.data["steamId"] = newSteamId
         return newSteamId
@@ -135,8 +136,8 @@ class SelectRequestHandler(requestInfo: NettyWebService.RequestInfo) : AbstractR
         }
 
         val availableGames = ownedGames
-                .filter { game -> availableIcons.contains(game.appid) }
-                .sortedBy { game -> game.name }
+            .filter { game -> availableIcons.contains(game.appid) }
+            .sortedBy { game -> game.name }
 
         if (availableGames.isEmpty()) {
             // The user can't select any games, but he has some on his Steam account
@@ -181,16 +182,16 @@ class SelectRequestHandler(requestInfo: NettyWebService.RequestInfo) : AbstractR
      */
     private fun saveSelectedGames(): Response {
         val games = request.form()
-                .filter { pair -> pair.first == "game" }
-                .mapNotNull { pair -> pair.second }
-                .map { checkbox ->
-                    try {
-                        checkbox.replace("game-", "").toInt()
-                    } catch (ex: NumberFormatException) {
-                        throw WebException(0x800, "Couldn't a parse the string of a checkbox")
-                    }
+            .filter { pair -> pair.first == "game" }
+            .mapNotNull { pair -> pair.second }
+            .map { checkbox ->
+                try {
+                    checkbox.replace("game-", "").toInt()
+                } catch (ex: NumberFormatException) {
+                    throw WebException(0x800, "Couldn't a parse the string of a checkbox")
                 }
-                .toList()
+            }
+            .toList()
         val uniqueId: String = session.getData("uniqueId", 0x704)
 
         if (games.size > config.maxSteamGroups) {

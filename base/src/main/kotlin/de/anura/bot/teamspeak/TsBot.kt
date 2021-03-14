@@ -50,8 +50,10 @@ object TsBot {
                     api.login(appConfig.user, appConfig.password)
                 } catch (ex: TS3CommandFailedException) {
                     // If the credentials are rejected, we stop the bot
-                    logger.error("Can't connect to the Teamspeak server, " +
-                            "because the credentials were rejected", appConfig.virtualserver)
+                    logger.error(
+                        "Can't connect to the Teamspeak server, " +
+                                "because the credentials were rejected", appConfig.virtualserver
+                    )
                     connected = false
                     if (firstJoin) {
                         exitProcess(1)
@@ -63,8 +65,10 @@ object TsBot {
                     api.selectVirtualServerById(appConfig.virtualserver)
                 } catch (ex: TS3CommandFailedException) {
                     // If a server with the id doesn't exists, we stop the bot
-                    logger.error("Can't connect to the Teamspeak server, " +
-                            "because there's no virtaul server with the id '{}'", appConfig.virtualserver)
+                    logger.error(
+                        "Can't connect to the Teamspeak server, " +
+                                "because there's no virtaul server with the id '{}'", appConfig.virtualserver
+                    )
                     connected = false
                     if (firstJoin) {
                         exitProcess(1)

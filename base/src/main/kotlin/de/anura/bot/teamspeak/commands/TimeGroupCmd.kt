@@ -34,11 +34,11 @@ class TimeGroupCmd : Command() {
 
         // Converts all time groups to a single string
         val list = groups.list()
-                .joinToString(separator = "\n") {
-                    val name = tsGroups[it.tsGroup]?.name ?: " --- "
-                    val hours = BigDecimal(it.time.seconds / 60.0 / 60.0).setScale(2, RoundingMode.HALF_UP)
-                    "$name (${it.tsGroup}) - $hours h"
-                }
+            .joinToString(separator = "\n") {
+                val name = tsGroups[it.tsGroup]?.name ?: " --- "
+                val hours = BigDecimal(it.time.seconds / 60.0 / 60.0).setScale(2, RoundingMode.HALF_UP)
+                "$name (${it.tsGroup}) - $hours h"
+            }
 
         return if (list.isEmpty()) {
             "There are no time groups registered."

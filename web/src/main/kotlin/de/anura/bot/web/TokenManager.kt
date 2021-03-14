@@ -9,6 +9,7 @@ class TokenManager {
     private val tokenChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     private val tokenLength = 20
     private val expirationTime = 60 * 15
+
     // Token (String) <> Token
     private val tokens = mutableMapOf<String, Token>()
 
@@ -62,9 +63,9 @@ class TokenManager {
     private fun generateToken(uniqueId: String, tag: String): Token {
         // Generating a random sequence of strings
         val tokenString = Random().ints(tokenLength.toLong(), 0, tokenChars.length)
-                .asSequence()
-                .map { tokenChars[it] }
-                .joinToString(separator = "")
+            .asSequence()
+            .map { tokenChars[it] }
+            .joinToString(separator = "")
 
         // If another token with same token string exists, we'll generate a new string
         if (findToken(tokenString) != null) return generateToken(uniqueId, tag)

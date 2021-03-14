@@ -18,8 +18,10 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     private val clients = mutableMapOf<Int, TeamspeakClient>()
 
     fun populateCache(client: Client) {
-        clients[client.id] = TeamspeakClient(client.id, client.databaseId, client.uniqueIdentifier,
-                client.channelId, findTsVersion(client.version))
+        clients[client.id] = TeamspeakClient(
+            client.id, client.databaseId, client.uniqueIdentifier,
+            client.channelId, findTsVersion(client.version)
+        )
     }
 
     fun clearCache() {
@@ -58,8 +60,10 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
 
             val userInfo = clients[ev.invokerId]?.toUserInfo()
             if (userInfo == null) {
-                asyncApi.sendPrivateMessage(ev.invokerId,
-                        "There's no information about you. Please wait 5 seconds and try again.")
+                asyncApi.sendPrivateMessage(
+                    ev.invokerId,
+                    "There's no information about you. Please wait 5 seconds and try again."
+                )
                 return
             }
 
@@ -124,8 +128,10 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
     override fun onClientJoin(ev: ClientJoinEvent) {
         asyncApi.getClientInfo(ev.clientId).onSuccess { info ->
 
-            clients[ev.clientId] = TeamspeakClient(ev.clientId, ev.clientDatabaseId, ev.uniqueClientIdentifier,
-                    info.channelId, findTsVersion(info.version))
+            clients[ev.clientId] = TeamspeakClient(
+                ev.clientId, ev.clientDatabaseId, ev.uniqueClientIdentifier,
+                info.channelId, findTsVersion(info.version)
+            )
 
             steam.setGroups(ev)
             TimeManager.load(ev.uniqueClientIdentifier)
@@ -145,8 +151,10 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
             // When we would delete it and add time (the next time), the time
             // would start from 0 and so an invalid would be later saved to the database.
             Scheduler.execute { TimeManager.save(client.uniqueId, false) }
-            logger.info("Only soft saving the time of {}, because he/she was with multiple accounts online",
-                    client.uniqueId)
+            logger.info(
+                "Only soft saving the time of {}, because he/she was with multiple accounts online",
+                client.uniqueId
+            )
         } else {
             // We save the data of the user (& delete it), because no other user with the same uid is online
             Scheduler.execute { TimeManager.save(client.uniqueId, true) }
@@ -163,7 +171,13 @@ class EventListener(private val bot: TsBot, query: TS3Query) : TS3EventAdapter()
         }
     }
 
-    data class TeamspeakClient(var clientId: Int, val databaseId: Int, val uniqueId: String, var channelId: Int, val tsVersion: Int) {
+    data class TeamspeakClient(
+        var clientId: Int,
+        val databaseId: Int,
+        val uniqueId: String,
+        var channelId: Int,
+        val tsVersion: Int
+    ) {
         fun isServerQuery(): Boolean {
             return tsVersion == 1
         }

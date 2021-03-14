@@ -17,7 +17,7 @@ class Perms : Command() {
         }
 
         val client = ts.getDatabaseClientByUId(uniqueId)
-                ?: return "A user with the unique id $uniqueId never visited this Teamspeak!"
+            ?: return "A user with the unique id $uniqueId never visited this Teamspeak!"
 
         perms.add(uniqueId)
         return "Given permission to ${client.nickname}"
@@ -26,8 +26,8 @@ class Perms : Command() {
     @CommandHelp("List all users with the permission")
     fun list(): String {
         val clients = ts.databaseClients
-                .filter { perms.has(it.uniqueIdentifier) }
-                .joinToString(separator = "\n") { "${it.nickname} - ${it.uniqueIdentifier}" }
+            .filter { perms.has(it.uniqueIdentifier) }
+            .joinToString(separator = "\n") { "${it.nickname} - ${it.uniqueIdentifier}" }
 
         return "All users with permission: \n$clients"
     }

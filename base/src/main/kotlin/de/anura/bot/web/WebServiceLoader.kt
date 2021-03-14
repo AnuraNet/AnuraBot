@@ -26,8 +26,10 @@ object WebServiceLoader {
         if (config.web.enabled) {
             if (serviceClass == null) {
                 // The web service is enabled, but the jar isn't compiled with the web module
-                logger.error("The web service is enabled, but the jar isn't compiled with the web module!\n" +
-                        "Please disable the web serive in the configuration or use the jar compiled with the web module.")
+                logger.error(
+                    "The web service is enabled, but the jar isn't compiled with the web module!\n" +
+                            "Please disable the web serive in the configuration or use the jar compiled with the web module."
+                )
                 throw ClassNotFoundException("Couldn't find the class NettyWebService")
             } else {
                 // The web service is enabled and jar is compiled with the web module
@@ -37,10 +39,12 @@ object WebServiceLoader {
             }
         } else {
             // Then web service isn't enabled
-            logger.info(when (serviceClass) {
-                null -> "Compiled without the web module which isn't enabled"
-                else -> "Compiled with the web module but not enabled"
-            })
+            logger.info(
+                when (serviceClass) {
+                    null -> "Compiled without the web module which isn't enabled"
+                    else -> "Compiled with the web module but not enabled"
+                }
+            )
             return null
         }
     }

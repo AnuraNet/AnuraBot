@@ -86,26 +86,26 @@ class NettyWebService(private val config: WebConfig) : WebService {
         // Routing
         val response = try {
             when (request.uri.path.toLowerCase()) {
-            // Connecting Steam
+                // Connecting Steam
                 "/authenticate" -> connectHandler.authenticate()
                 "/accept" -> connectHandler.accept(idManager, discovered)
                 "/redirecttosteam" -> connectHandler.redirect(idManager, discovered)
                 "/success" -> connectHandler.success()
 
-            // Selecting games
+                // Selecting games
                 "/selectgames" -> selectHandler.selectGames()
 
-            // Serving assets
+                // Serving assets
                 "/assets/js/selectgames.js" -> assetHandler.serveAsset("/assets/js/selectgames.js")
 
-            // Handling errors
+                // Handling errors
                 "/error" -> defaultHandler.error()
                 else -> defaultHandler.mainPage()
             }
         } catch (ex: WebException) {
             var logBuilder = logger.atError()
-                    .addArgument(ex.code.toString(16))
-                    .addArgument(request.uri.path)
+                .addArgument(ex.code.toString(16))
+                .addArgument(request.uri.path)
 
             if (ex.code == 0x101) {
                 // Don't print the full stacktrace, when someone uses an old link
@@ -129,11 +129,11 @@ class NettyWebService(private val config: WebConfig) : WebService {
     }
 
     data class RequestInfo(
-            val request: Request,
-            val redirect: String,
-            val session: SessionManager.Session,
-            val config: WebConfig,
-            val tokens: TokenManager
+        val request: Request,
+        val redirect: String,
+        val session: SessionManager.Session,
+        val config: WebConfig,
+        val tokens: TokenManager
     )
 
     // Url

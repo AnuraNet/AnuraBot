@@ -20,8 +20,8 @@ object Permissions {
     private fun load() {
         database.withHandleUnchecked {
             it.select("SELECT uid FROM ts_user WHERE permission = 1")
-                    .mapTo(String::class.java)
-                    .list()
+                .mapTo(String::class.java)
+                .list()
         }.forEach { allowed.add(it) }
     }
 

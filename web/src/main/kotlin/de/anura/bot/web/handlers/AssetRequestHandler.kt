@@ -12,10 +12,10 @@ class AssetRequestHandler(requestInfo: RequestInfo) : AbstractRequestHandler(req
      */
     fun serveAsset(path: String): Response {
         val stream = this.javaClass
-                .getResourceAsStream(path)
+            .getResourceAsStream(path)
 
         return Response(Status.OK)
-                .body(stream)
+            .body(stream)
     }
 
 }

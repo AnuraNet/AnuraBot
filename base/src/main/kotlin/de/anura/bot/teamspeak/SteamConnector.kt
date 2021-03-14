@@ -14,8 +14,10 @@ object SteamConnector {
     private const val delayTime = 2
 
     private val ts = TsBot.api
+
     // Steam Game Id <> Teamspeak Group Id
     private val icons = mutableMapOf<Int, Int>()
+
     // Teamspeak UID <> Instant
     private val delay = mutableMapOf<String, Instant>()
     private val logger = LoggerFactory.getLogger(SteamConnector.javaClass)
@@ -30,9 +32,9 @@ object SteamConnector {
     private fun loadIcons() {
         Database.get().withHandleUnchecked {
             it.select("SELECT * FROM steam_game")
-                    .map { rs, _ -> Pair(rs.getInt("id"), rs.getInt("icon_id")) }
-                    .stream()
-                    .forEach { pair -> icons[pair.first] = pair.second }
+                .map { rs, _ -> Pair(rs.getInt("id"), rs.getInt("icon_id")) }
+                .stream()
+                .forEach { pair -> icons[pair.first] = pair.second }
         }
     }
 
@@ -133,8 +135,8 @@ object SteamConnector {
         // Getting the Steam id of the user from the database. If it isn't set we don't continue
         val steamId = Database.get().withHandleUnchecked { handle ->
             handle.select("SELECT steam_id FROM ts_user WHERE steam_id IS NOT NULL AND uid = ?", uniqueId)
-                    .mapTo(String::class.java)
-                    .findFirst()
+                .mapTo(String::class.java)
+                .findFirst()
         }
 
         val selectedGames = if (steamId.isPresent) {
@@ -153,14 +155,14 @@ object SteamConnector {
 
             // Adding the missing groups for games to the user
             correctGroups
-                    .filter { !serverGroups.contains(it) }
-                    .forEach { ts.addClientToServerGroup(it, databaseId) }
+                .filter { !serverGroups.contains(it) }
+                .forEach { ts.addClientToServerGroup(it, databaseId) }
 
             // Removing the invalid groups from the user
             serverGroups
-                    .filter { icons.containsValue(it) }
-                    .filter { !correctGroups.contains(it) }
-                    .forEach { ts.removeClientFromServerGroup(it, databaseId) }
+                .filter { icons.containsValue(it) }
+                .filter { !correctGroups.contains(it) }
+                .forEach { ts.removeClientFromServerGroup(it, databaseId) }
 
         } catch (ex: TS3CommandFailedException) {
             // Catches a TS3 Exception, preventing a crash of the bot
@@ -180,8 +182,8 @@ object SteamConnector {
     fun getSteamId(uniqueId: String): String? {
         val steamId = Database.get().withHandleUnchecked {
             it.select("SELECT steam_id FROM ts_user WHERE steam_id IS NOT NULL AND uid = ?", uniqueId)
-                    .mapTo(String::class.java)
-                    .findFirst()
+                .mapTo(String::class.java)
+                .findFirst()
         }
         return steamId.orElse(null)
     }

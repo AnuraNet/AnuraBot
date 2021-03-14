@@ -34,35 +34,35 @@ object AppConfig {
         ini = Wini(from)
 
         teamspeak = TsConfig(
-                getString("teamspeak", "host"),
-                getInt("teamspeak", "port"),
-                getString("teamspeak", "user"),
-                getString("teamspeak", "password"),
-                getInt("teamspeak", "virtualserver"),
-                getString("teamspeak", "nickname"),
-                getString("teamspeak", "channel"),
-                getFloodRate("teamspeak", "flood_rate")
+            getString("teamspeak", "host"),
+            getInt("teamspeak", "port"),
+            getString("teamspeak", "user"),
+            getString("teamspeak", "password"),
+            getInt("teamspeak", "virtualserver"),
+            getString("teamspeak", "nickname"),
+            getString("teamspeak", "channel"),
+            getFloodRate("teamspeak", "flood_rate")
         )
 
         web = WebConfig(
-                getBoolean("web", "enabled"),
-                getString("web", "host"),
-                getInt("web", "port"),
-                if (getString("web", "proxy_url").equals("null", true)) null else getString("web", "proxy_url"),
-                getInt("web", "maxSteamGroups"),
-                getString("web", "external_url")
+            getBoolean("web", "enabled"),
+            getString("web", "host"),
+            getInt("web", "port"),
+            if (getString("web", "proxy_url").equals("null", true)) null else getString("web", "proxy_url"),
+            getInt("web", "maxSteamGroups"),
+            getString("web", "external_url")
         )
 
         mysql = SqlConfig(
-                getString("mysql", "host"),
-                getInt("mysql", "port"),
-                getString("mysql", "user"),
-                getString("mysql", "password"),
-                getString("mysql", "database")
+            getString("mysql", "host"),
+            getInt("mysql", "port"),
+            getString("mysql", "user"),
+            getString("mysql", "password"),
+            getString("mysql", "database")
         )
 
         steam = SteamConfig(
-                getString("steam", "api_key")
+            getString("steam", "api_key")
         )
 
     }

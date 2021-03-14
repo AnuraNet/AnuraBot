@@ -14,11 +14,13 @@ class DefaultRequestHandler(requestInfo: NettyWebService.RequestInfo) : Abstract
     fun error(): Response {
         val code = session.data.remove("errorCode")?.toInt() ?: 0x900
 
-        return textOK("<h3>Something went wrong</h3>" +
-                "Please use the url you'll get when you join the channel for the " +
-                "Steam authentication. <br/>" +
-                "If don't know what you should do contact an admin. <br/>" +
-                "Error code: 0x${code.toString(16)}")
+        return textOK(
+            "<h3>Something went wrong</h3>" +
+                    "Please use the url you'll get when you join the channel for the " +
+                    "Steam authentication. <br/>" +
+                    "If don't know what you should do contact an admin. <br/>" +
+                    "Error code: 0x${code.toString(16)}"
+        )
     }
 
     /**
@@ -34,9 +36,11 @@ class DefaultRequestHandler(requestInfo: NettyWebService.RequestInfo) : Abstract
      * This page should the user see if he accidentally browses to our url
      */
     fun mainPage(): Response {
-        return textOK("<h3>Oh Sorry</h3>" +
-                "But I think you came here the wrong way. <br/>" +
-                "If you feel lost just visit our <a href='${config.externalUrl}'>website</a>.")
+        return textOK(
+            "<h3>Oh Sorry</h3>" +
+                    "But I think you came here the wrong way. <br/>" +
+                    "If you feel lost just visit our <a href='${config.externalUrl}'>website</a>."
+        )
     }
 
 }

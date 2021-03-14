@@ -9,7 +9,7 @@ abstract class SteamException : RuntimeException {
 }
 
 class SteamHttpException(val url: String, val status: Int) :
-        SteamException("Couldn't execute Steam request to $url. Http Status: $status")
+    SteamException("Couldn't execute Steam request to $url. Http Status: $status")
 
 class SteamJsonException(throwable: Throwable?) :
-        SteamException("Couldn't parse the answer from Steam as JSON!", throwable)
+    SteamException("Couldn't parse the answer from Steam as JSON!", throwable)

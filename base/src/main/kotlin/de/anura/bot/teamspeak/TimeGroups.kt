@@ -9,6 +9,7 @@ import java.time.Duration
 object TimeGroups {
 
     private val database = Database.get()
+
     // Teamspeak Group Id <> Time Group
     private val groups = mutableMapOf<Int, TimeGroup>()
     private val ts = TsBot.api
@@ -21,8 +22,8 @@ object TimeGroups {
         // Loading from the database
         database.withHandleUnchecked {
             it.select("SELECT * FROM time_group")
-                    .map { rs, _ -> TimeGroup(rs.getInt("ts_group"), Duration.ofSeconds(rs.getLong("required_time"))) }
-                    .list()
+                .map { rs, _ -> TimeGroup(rs.getInt("ts_group"), Duration.ofSeconds(rs.getLong("required_time"))) }
+                .list()
         }.forEach { groups[it.tsGroup] = it }
         // Adding the listener
         TimeManager.addListener(::listen)
@@ -91,13 +92,13 @@ object TimeGroups {
         val time = TimeManager.get(uniqueId)
         // Selecting with smalltest positive time difference => Searching for the correct group
         val correctGroup = groups.values
-                .filter { !(time - it.time).isNegative }
-                .minByOrNull { time - it.time } ?: return
+            .filter { !(time - it.time).isNegative }
+            .minByOrNull { time - it.time } ?: return
 
         // Removing the user from the wrong groups
         timeGroups
-                .filterNot { it == correctGroup.tsGroup }
-                .forEach { ts.removeClientFromServerGroup(it, databaseId) }
+            .filterNot { it == correctGroup.tsGroup }
+            .forEach { ts.removeClientFromServerGroup(it, databaseId) }
 
         // Adding the correct to the user if he hasn't got it
         if (!timeGroups.contains(correctGroup.tsGroup)) {
@@ -138,12 +139,12 @@ object TimeGroups {
 
             // Adding all online clients with enough and not too much time to this group
             ts.clients
-                    // We don't add groups to the serveradmin account
-                    .filter { client -> !client.uniqueIdentifier.equals("serveradmin", true) }
-                    .filter { client -> TimeManager.get(client.uniqueIdentifier) in time..nextGroupTime }
-                    .forEach { client ->
-                        check(client.uniqueIdentifier, client.databaseId, client.serverGroups.asList())
-                    }
+                // We don't add groups to the serveradmin account
+                .filter { client -> !client.uniqueIdentifier.equals("serveradmin", true) }
+                .filter { client -> TimeManager.get(client.uniqueIdentifier) in time..nextGroupTime }
+                .forEach { client ->
+                    check(client.uniqueIdentifier, client.databaseId, client.serverGroups.asList())
+                }
         }
 
         return group

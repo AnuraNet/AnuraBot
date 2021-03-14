@@ -96,7 +96,7 @@ class UserInfo(private val ts5: Boolean, private val databaseId: Int) {
         val tsApi = TsBot.api
 
         val permAddPowerId = tsApi.permissions.find { it.name == permAddPower }?.id
-                ?: return AddGroupPermission.NO_PERMISSION
+            ?: return AddGroupPermission.NO_PERMISSION
 
         if (!tsApi.serverGroups.any { it.id == groupId }) {
             return AddGroupPermission.NO_GROUP

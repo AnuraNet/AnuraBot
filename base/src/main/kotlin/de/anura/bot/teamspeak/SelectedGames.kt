@@ -19,9 +19,10 @@ object SelectedGames {
      */
     fun querySelectedGames(uniqueId: String): List<Int> {
         return Database.get().withHandleUnchecked {
-            it.select("SELECT game_id FROM selected_game " +
-                    "WHERE user_id = (SELECT id FROM ts_user WHERE uid = ?)",
-                    uniqueId
+            it.select(
+                "SELECT game_id FROM selected_game " +
+                        "WHERE user_id = (SELECT id FROM ts_user WHERE uid = ?)",
+                uniqueId
             ).mapTo(Int::class.java).list()
         }
     }
@@ -65,7 +66,7 @@ object SelectedGames {
         }
 
         return ownedGames
-                .filter { game -> updatedSelected.contains(game.appid) }
+            .filter { game -> updatedSelected.contains(game.appid) }
     }
 
     /**
@@ -112,8 +113,8 @@ object SelectedGames {
     fun saveSelectedGames(uniqueId: String, games: List<Int>) {
         Database.get().useHandleUnchecked {
             val optionalId = it.select("SELECT id FROM ts_user WHERE uid = ?", uniqueId)
-                    .mapTo(Int::class.java)
-                    .findFirst()
+                .mapTo(Int::class.java)
+                .findFirst()
 
             if (!optionalId.isPresent) {
                 logger.warn("Can't save the selected games for user {}, because he's got no id", uniqueId)

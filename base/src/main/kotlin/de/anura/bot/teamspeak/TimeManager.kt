@@ -19,8 +19,8 @@ object TimeManager {
     private fun select(uid: String): Duration? {
         val result = Database.get().withHandleUnchecked {
             it.select("SELECT time FROM ts_user WHERE uid = ?", uid)
-                    .map { rs, _ -> Duration.ofSeconds(rs.getLong(1)) }
-                    .findFirst()
+                .map { rs, _ -> Duration.ofSeconds(rs.getLong(1)) }
+                .findFirst()
         }
         return result.orElse(null)
     }

@@ -17,7 +17,7 @@ abstract class AbstractRequestHandler(requestInfo: RequestInfo) {
     protected fun verifyToken(): String {
         val token = request.query("token") ?: throw WebException(0x100, "Can't find token in request query!")
         val uniqueId = tokens.destroyToken(token)
-                ?: throw WebException(0x101, "Can't get the uniqueId while destroying")
+            ?: throw WebException(0x101, "Can't get the uniqueId while destroying")
 
         session.data["uniqueId"] = uniqueId
 
@@ -29,7 +29,7 @@ abstract class AbstractRequestHandler(requestInfo: RequestInfo) {
      */
     protected fun redirectToUrl(url: String, keepPost: Boolean = false): Response {
         return Response(if (!keepPost) Status.SEE_OTHER else Status.TEMPORARY_REDIRECT)
-                .header("Location", url)
+            .header("Location", url)
     }
 
     /**
@@ -42,7 +42,8 @@ abstract class AbstractRequestHandler(requestInfo: RequestInfo) {
     protected fun htmlConstruct(body: String, head: String = ""): Response {
         //language=HTML
         return Response(Status.OK)
-                .body("""
+            .body(
+                """
                     <!DOCTYPE HTML>
                     <html lang='en'>
                     <head>
@@ -59,8 +60,9 @@ abstract class AbstractRequestHandler(requestInfo: RequestInfo) {
                     <body>
                        $body
                     </body>
-                    """.trimIndent())
-                .header("Content-Type", "text/html")
+                    """.trimIndent()
+            )
+            .header("Content-Type", "text/html")
     }
 
     /**

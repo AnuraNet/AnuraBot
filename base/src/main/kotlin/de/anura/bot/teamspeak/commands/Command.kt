@@ -18,8 +18,8 @@ abstract class Command {
     @Suppress("UNCHECKED_CAST")
     private fun <A : Annotation> classAnnotation(clazz: KClass<A>): A {
         val matching = this::class.annotations
-                .filter { clazz.isInstance(it) }
-                .map { clazz.cast(it) }
+            .filter { clazz.isInstance(it) }
+            .map { clazz.cast(it) }
 
         if (matching.isEmpty()) {
             throw IllegalArgumentException("No @${clazz.simpleName} annotation")
@@ -32,30 +32,30 @@ abstract class Command {
         val userInfoKType = UserInfo::class.createType()
 
         return this::class.declaredFunctions
-                // Trying to find the CommandHelp annotation
-                .map { function ->
-                    val annotation = function.annotations
-                            .filterIsInstance<CommandHelp>()
-                            .map { annotation -> annotation }
-                            .firstOrNull()
+            // Trying to find the CommandHelp annotation
+            .map { function ->
+                val annotation = function.annotations
+                    .filterIsInstance<CommandHelp>()
+                    .map { annotation -> annotation }
+                    .firstOrNull()
 
-                    Pair(function, annotation)
-                }
-                // When there's no annotation, we'll filter it out
-                .filter { pair -> pair.second != null }
-                // Adding the arguments and transforming the annotation into a sub command
-                .map { pair ->
-                    val help = (pair.second as CommandHelp).help
-                    val allArguments = pair.first.parameters
-                            .filter { it.kind == KParameter.Kind.VALUE }
-                            .map { Argument(it.name ?: "", it.type) }
+                Pair(function, annotation)
+            }
+            // When there's no annotation, we'll filter it out
+            .filter { pair -> pair.second != null }
+            // Adding the arguments and transforming the annotation into a sub command
+            .map { pair ->
+                val help = (pair.second as CommandHelp).help
+                val allArguments = pair.first.parameters
+                    .filter { it.kind == KParameter.Kind.VALUE }
+                    .map { Argument(it.name ?: "", it.type) }
 
-                    val userArguments = allArguments.filter { it.type != userInfoKType }
+                val userArguments = allArguments.filter { it.type != userInfoKType }
 
-                    SubCommand(pair.first, pair.first.name, help, allArguments, userArguments)
-                }
-                // Mapping it with the name as key
-                .associateBy { it.name.toLowerCase() }
+                SubCommand(pair.first, pair.first.name, help, allArguments, userArguments)
+            }
+            // Mapping it with the name as key
+            .associateBy { it.name.toLowerCase() }
     }
 
     /**
@@ -77,7 +77,8 @@ abstract class Command {
     private fun generateHelp(userInfo: UserInfo): String {
         // Generating a list of a sub commands with their arguments and their description
         // The space is needed for trimIndent()
-        val subCommands = subCommands.values.joinToString(separator = "\n            ") { generateSubHelp(it, userInfo) }
+        val subCommands =
+            subCommands.values.joinToString(separator = "\n            ") { generateSubHelp(it, userInfo) }
 
         return """
             $name
@@ -145,8 +146,10 @@ abstract class Command {
         return call as? String ?: "Success: $call"
     }
 
-    data class SubCommand(val function: KFunction<*>, val name: String, val help: String,
-                          val allArguments: List<Argument>, val userArguments: List<Argument>)
+    data class SubCommand(
+        val function: KFunction<*>, val name: String, val help: String,
+        val allArguments: List<Argument>, val userArguments: List<Argument>
+    )
 
     data class Argument(val name: String, val type: KType)
 

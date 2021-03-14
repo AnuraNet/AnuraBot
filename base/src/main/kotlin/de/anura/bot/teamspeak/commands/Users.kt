@@ -18,8 +18,8 @@ class Users : Command() {
         // Getting all users who connected their Steam account from the database
         val users = Database.get().withHandleUnchecked {
             it.select("SELECT uid, steam_id FROM ts_user WHERE steam_id IS NOT NULL")
-                    .map { rs, _ -> Pair(rs.getString("uid"), rs.getLong("steam_id")) }
-                    .toMap()
+                .map { rs, _ -> Pair(rs.getString("uid"), rs.getLong("steam_id")) }
+                .toMap()
         }
 
         val userStrings = mutableListOf<String>()

@@ -16,8 +16,8 @@ object ActivityCounter {
 
     private fun run() {
         ts.clients.stream()
-                .filter { client -> Duration.ofMillis(client.idleTime) < maxIdleTime }
-                .forEach { client -> TimeManager.add(client.uniqueIdentifier, Duration.ofSeconds(delay)) }
+            .filter { client -> Duration.ofMillis(client.idleTime) < maxIdleTime }
+            .forEach { client -> TimeManager.add(client.uniqueIdentifier, Duration.ofSeconds(delay)) }
         TimeManager.saveAll(false)
     }
 }

@@ -64,7 +64,7 @@ class ConnectRequestHandler(requestInfo: RequestInfo) : AbstractRequestHandler(r
 
         // Requesting player data from Steam
         val player = SteamAPI.getPlayerSummaries(steamid)
-                ?: throw WebException(0x303, "The SteamAPI doesn't show more information about the user $steamid")
+            ?: throw WebException(0x303, "The SteamAPI doesn't show more information about the user $steamid")
         session.data["steamName"] = player.personaname
         session.data["steamUrl"] = "https://steamcommunity.com/profiles/$steamid"
         // Updating the steam id from the session, because it have changed
@@ -75,8 +75,9 @@ class ConnectRequestHandler(requestInfo: RequestInfo) : AbstractRequestHandler(r
         val rowChanges = try {
             Database.get().withHandleUnchecked {
                 it.execute(
-                        "UPDATE ts_user SET steam_id = ? WHERE uid = ? AND (steam_id IS NULL OR steam_id NOT LIKE ?)",
-                        steamid, uniqueId, steamid)
+                    "UPDATE ts_user SET steam_id = ? WHERE uid = ? AND (steam_id IS NULL OR steam_id NOT LIKE ?)",
+                    steamid, uniqueId, steamid
+                )
             }
         } catch (ex: Exception) {
             // We show the user an error too, if there was an database error
@@ -102,10 +103,12 @@ class ConnectRequestHandler(requestInfo: RequestInfo) : AbstractRequestHandler(r
         val url = session.getData("steamUrl", 0x401)
         val uniqueId = session.getData("uniqueId", 0x402)
 
-        return textOK("<h3>Success</h3>" +
-                "Congratulations $name!<br/><br/>" +
-                "Your <a href='$url'>Steam profile</a> is now connected with your Teamspeak Identity ($uniqueId).<br/>" +
-                "<a href='/selectgames'>Select now which games should be shown</a> as Teamspeak groups.")
+        return textOK(
+            "<h3>Success</h3>" +
+                    "Congratulations $name!<br/><br/>" +
+                    "Your <a href='$url'>Steam profile</a> is now connected with your Teamspeak Identity ($uniqueId).<br/>" +
+                    "<a href='/selectgames'>Select now which games should be shown</a> as Teamspeak groups."
+        )
     }
 
 }

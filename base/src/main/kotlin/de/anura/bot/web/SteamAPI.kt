@@ -29,19 +29,19 @@ object SteamAPI {
         val player = json.optJSONObject("response")?.optJSONArray("players")?.optJSONObject(0) ?: return null
 
         return SteamPlayer(
-                player.getString("steamid"),
-                player.getString("personaname"),
-                player.getString("profileurl"),
-                SteamAvatar(
-                        player.getString("avatar"),
-                        player.getString("avatarmedium"),
-                        player.getString("avatarfull")
-                ),
-                SteamPersonaState.values()[player.getInt("personastate")],
-                player.getInt("communityvisibilitystate") == 3,
-                player.has("profilestate"),
-                player.getInt("lastlogoff"),
-                player.has("commentpermission")
+            player.getString("steamid"),
+            player.getString("personaname"),
+            player.getString("profileurl"),
+            SteamAvatar(
+                player.getString("avatar"),
+                player.getString("avatarmedium"),
+                player.getString("avatarfull")
+            ),
+            SteamPersonaState.values()[player.getInt("personastate")],
+            player.getInt("communityvisibilitystate") == 3,
+            player.has("profilestate"),
+            player.getInt("lastlogoff"),
+            player.has("commentpermission")
         )
     }
 
@@ -68,8 +68,8 @@ object SteamAPI {
         gamesJson.forEach { gameJson ->
             if (gameJson !is JSONObject) return@forEach
             val game = SteamGame(
-                    gameJson.getInt("appid"),
-                    gameJson.getString("name")
+                gameJson.getInt("appid"),
+                gameJson.getString("name")
             )
             games.add(game)
         }

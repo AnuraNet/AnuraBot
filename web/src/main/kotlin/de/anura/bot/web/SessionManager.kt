@@ -8,10 +8,12 @@ class SessionManager {
 
     // Settings for the cookie
     val cookieName = "BotSession"
+
     // Settings for the token generation
     private val tokenChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     private val tokenLength = 24
     private val expirationTime = 60 * 15
+
     // Session Identifier (String) <> Session
     private val sessions = mutableMapOf<String, Session>()
 
@@ -39,10 +41,10 @@ class SessionManager {
         session.fresh = false
 
         return Cookie(
-                name = cookieName,
-                value = session.token,
-                maxAge = expirationTime.toLong(),
-                httpOnly = true
+            name = cookieName,
+            value = session.token,
+            maxAge = expirationTime.toLong(),
+            httpOnly = true
         )
     }
 
@@ -66,9 +68,9 @@ class SessionManager {
     private fun generateToken(): String {
         // Generating a random sequenze of strings
         val token = Random().ints(tokenLength.toLong(), 0, tokenChars.length)
-                .asSequence()
-                .map { tokenChars[it] }
-                .joinToString(separator = "")
+            .asSequence()
+            .map { tokenChars[it] }
+            .joinToString(separator = "")
 
         // If another token with same token string exists, we'll generate a new string
         if (findSession(token) != null) return generateToken()
@@ -81,10 +83,10 @@ class SessionManager {
     }
 
     data class Session(
-            val token: String,
-            var lastAccess: Long,
-            val data: MutableMap<String, String>,
-            var fresh: Boolean
+        val token: String,
+        var lastAccess: Long,
+        val data: MutableMap<String, String>,
+        var fresh: Boolean
     ) {
         /**
          * Gets data for the [key]
