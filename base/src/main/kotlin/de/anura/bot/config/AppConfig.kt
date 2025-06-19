@@ -1,8 +1,10 @@
 package de.anura.bot.config
 
 import com.github.theholywaffle.teamspeak3.TS3Query
-import org.apache.commons.configuration.HierarchicalINIConfiguration
+import org.apache.commons.configuration2.INIConfiguration
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 import java.nio.file.Files
 
 object AppConfig {
@@ -11,7 +13,7 @@ object AppConfig {
     lateinit var mysql: SqlConfig
     lateinit var steam: SteamConfig
 
-    private lateinit var ini: HierarchicalINIConfiguration
+    private lateinit var ini: INIConfiguration
 
     init {
         val file = File("config.ini")
@@ -35,7 +37,11 @@ object AppConfig {
     }
 
     private fun readConfig(from: File) {
-        ini = HierarchicalINIConfiguration(from)
+        ini = INIConfiguration
+            .builder()
+            .setSectionInLineCommentsAllowed(true)
+            .build()
+        ini.read(BufferedReader(InputStreamReader(from.inputStream())))
 
         teamspeak = TsConfig(
             getString("teamspeak", "host"),
