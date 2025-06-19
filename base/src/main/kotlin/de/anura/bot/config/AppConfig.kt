@@ -1,7 +1,7 @@
 package de.anura.bot.config
 
 import com.github.theholywaffle.teamspeak3.TS3Query
-import org.ini4j.Wini
+import org.apache.commons.configuration.HierarchicalINIConfiguration
 import java.io.File
 import java.nio.file.Files
 
@@ -11,7 +11,7 @@ object AppConfig {
     lateinit var mysql: SqlConfig
     lateinit var steam: SteamConfig
 
-    private lateinit var ini: Wini
+    private lateinit var ini: HierarchicalINIConfiguration
 
     init {
         val file = File("config.ini")
@@ -27,11 +27,15 @@ object AppConfig {
 
     private fun copyConfig(to: File) {
         val stream = this.javaClass.getResourceAsStream("/config.example.ini")
-        Files.copy(stream, to.toPath())
+        if (stream != null) {
+            Files.copy(stream, to.toPath())
+        } else {
+            throw ConfigException("Cannot find config file inside JAR")
+        }
     }
 
     private fun readConfig(from: File) {
-        ini = Wini(from)
+        ini = HierarchicalINIConfiguration(from)
 
         teamspeak = TsConfig(
             getString("teamspeak", "host"),
@@ -68,7 +72,7 @@ object AppConfig {
     }
 
     private fun getString(section: String, key: String): String {
-        val value = ini[section]?.get(key)
+        val value = ini.getSection(section).getString(key)
 
         if (value == null || value.trim() == "") {
             throw ConfigException("No value found for $section.$key")
@@ -90,13 +94,13 @@ object AppConfig {
     private fun getBoolean(section: String, key: String): Boolean {
         val string = getString(section, key).trim()
 
-        return string == "1" || string.toLowerCase() == "true"
+        return string == "1" || string.lowercase() == "true"
     }
 
     private fun getFloodRate(section: String, key: String): TS3Query.FloodRate {
         val string = getString(section, key).trim()
 
-        return when (string.toUpperCase()) {
+        return when (string.uppercase()) {
             "DEFAULT" -> TS3Query.FloodRate.DEFAULT
             "UNLIMITED" -> TS3Query.FloodRate.UNLIMITED
             else -> throw ConfigException("Value for key $section.$key must be 'DEFAULT' or 'UNLIMTED'")

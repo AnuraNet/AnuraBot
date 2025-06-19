@@ -85,7 +85,7 @@ class NettyWebService(private val config: WebConfig) : WebService {
 
         // Routing
         val response = try {
-            when (request.uri.path.toLowerCase()) {
+            when (request.uri.path.lowercase()) {
                 // Connecting Steam
                 "/authenticate" -> connectHandler.authenticate()
                 "/accept" -> connectHandler.accept(idManager, discovered)

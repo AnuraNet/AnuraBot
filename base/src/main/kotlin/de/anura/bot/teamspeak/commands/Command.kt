@@ -55,7 +55,7 @@ abstract class Command {
                 SubCommand(pair.first, pair.first.name, help, allArguments, userArguments)
             }
             // Mapping it with the name as key
-            .associateBy { it.name.toLowerCase() }
+            .associateBy { it.name.lowercase() }
     }
 
     /**
@@ -98,7 +98,7 @@ abstract class Command {
         }
 
         // Trying to find the sub command, if not => Help
-        val command = subCommands[arguments[0].toLowerCase()] ?: return generateHelp(userInfo)
+        val command = subCommands[arguments[0].lowercase()] ?: return generateHelp(userInfo)
 
         // If there are too few arguments => Help
         if (command.userArguments.size > arguments.size - 1) {
