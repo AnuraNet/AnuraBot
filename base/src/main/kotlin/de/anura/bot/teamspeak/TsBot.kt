@@ -37,9 +37,9 @@ object TsBot {
         config.setFloodRate(appConfig.floodRate)
 
         config.setConnectionHandler(object : ConnectionHandler {
-            override fun onConnect(query: TS3Query?) {
-                val api = if (query?.api != null) {
-                    query.api
+            override fun onConnect(api: TS3Api?) {
+                val api = if (api != null) {
+                    api
                 } else {
                     logger.error("There's no Teamspeak query while connecting")
                     return
@@ -52,7 +52,7 @@ object TsBot {
                     // If the credentials are rejected, we stop the bot
                     logger.error(
                         "Can't connect to the Teamspeak server, " +
-                                "because the credentials were rejected", appConfig.virtualserver
+                                "because the credentials were rejected {} ", appConfig.virtualserver
                     )
                     connected = false
                     if (firstJoin) {
